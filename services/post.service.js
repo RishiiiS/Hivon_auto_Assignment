@@ -46,3 +46,45 @@ export async function getPostById(id) {
 
   return data;
 }
+
+export async function updatePost(id, data) {
+  const { error } = await supabase
+    .from('posts')
+    .update(data)
+    .eq('id', id);
+
+  if (error) {
+    throw new Error('Failed to update post: ' + error.message);
+  }
+
+  return true;
+}
+
+export async function deletePost(id) {
+  const { error } = await supabase
+    .from('posts')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    throw new Error('Failed to delete post: ' + error.message);
+  }
+
+  return true;
+}
+
+export async function searchPosts(query, { limit = 10, offset = 0 }) {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('id, title, image_url, summary, author_id')
+    .or(`title.ilike.%${query}%,body.ilike.%${query}%`)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    throw new Error('Failed to search posts: ' + error.message);
+  }
+
+  return data;
+}
+
