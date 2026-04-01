@@ -1,0 +1,111 @@
+import { supabase } from '../lib/supabaseClient';
+import { createClient } from '@supabase/supabase-js';
+
+/**
+ * Creates a scoped Supabase client with the user's JWT token.
+ * This ensures API requests run in the context of the authenticated user
+ * without polluting a global server instance.
+ */
+function getAuthClient(token) {
+  if (!token) return supabase;
+  
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false, autoRefreshToken: false }
+    }
+  );
+}
+
+export async function signupUser({ name, email, password }) {
+  // 1. Create a new user using Supabase Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (authError) {
+    throw new Error(authError.message);
+  }
+
+  if (!authData.user) {
+    throw new Error('Signup failed or requires email confirmation.');
+  }
+
+  // 2. Insert the user into the custom "users" table
+  // We must use the authenticated session to insert into a table protected by RLS
+  if (!authData.session) {
+    throw new Error('Signup succeeded, but unable to create profile without an active session (e.g., waiting for email verification).');
+  }
+
+  const userClient = getAuthClient(authData.session.access_token);
+
+  const { error: dbError } = await userClient
+    .from('users')
+    .insert([
+      {
+        id: authData.user.id,
+        name: name,
+        email: email,
+        role: 'user',
+      }
+    ]);
+
+  if (dbError) {
+    console.error('Failed to create user profile, orphan auth user created:', authData.user.id);
+    throw new Error('Account created but failed to save profile: ' + dbError.message);
+  }
+
+  return authData;
+}
+
+export async function loginUser({ email, password }) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data; // contains user and session data
+}
+
+export async function logoutUser(token) {
+  // 3. Invalidate user session
+  // We use the scoped client so that Supabase knows WHICH session to sign out
+  const client = getAuthClient(token);
+  const { error } = await client.auth.signOut();
+  
+  if (error) {
+    throw new Error(error.message);
+  }
+  
+  return true;
+}
+
+export async function getCurrentUser(token) {
+  // 4. Retrieve current session & fetch user data
+  // We use getUser() to validate the JWT directly
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  
+  if (authError || !user) {
+    throw new Error(authError?.message || 'Invalid or expired token');
+  }
+
+  // Fetch from the custom "users" table
+  const { data: dbUser, error: dbError } = await supabase
+    .from('users')
+    .select('id, name, email, role')
+    .eq('id', user.id)
+    .single();
+
+  if (dbError) {
+    throw new Error('User profile not found: ' + dbError.message);
+  }
+
+  return dbUser;
+}
