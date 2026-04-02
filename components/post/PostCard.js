@@ -4,9 +4,23 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 
+function stripHtmlToText(html = '') {
+  return String(html)
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export default function PostCard({ post, isFeatured }) {
   const fallbackImage = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2940&auto=format&fit=crop';
   const imgUrl = post.image_url || fallbackImage;
+  const summaryText = post.summary ? stripHtmlToText(post.summary) : '';
   
   // Format dates statically for UI if missing
   const dateStr = post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Oct 24, 2024';
@@ -71,9 +85,9 @@ export default function PostCard({ post, isFeatured }) {
            
              <h2 className="text-4xl md:text-[50px] font-serif font-extrabold text-gray-900 tracking-tight leading-[1.05] mb-6 group-hover:text-[#0A4BB5] transition-colors">{post.title}</h2>
            
-           {post.summary && (
+           {summaryText && (
              <p className="text-[17px] md:text-[19px] text-gray-800 mb-10 leading-[1.75] font-serif italic max-w-3xl">
-               {post.summary}
+               {summaryText}
              </p>
            )}
            <div className="flex items-center gap-4 mt-auto">
@@ -111,10 +125,10 @@ export default function PostCard({ post, isFeatured }) {
               {post.title}
             </h3>
           
-          {post.summary && (
+          {summaryText && (
              <div className="bg-[#FAF9F7] rounded-xl p-4 md:p-5 mb-5 relative border border-gray-100">
                <span className="text-[11px] font-extrabold text-[#0A4BB5] tracking-widest uppercase mr-4 block mb-2">AI SUMMARY</span>
-               <span className="text-[16px] md:text-[17px] font-serif italic text-gray-800 leading-[1.75] text-left break-words block line-clamp-3">{post.summary}</span>
+               <span className="text-[16px] md:text-[17px] font-serif italic text-gray-800 leading-[1.75] text-left break-words block line-clamp-3">{summaryText}</span>
             </div>
           )}
         </div>

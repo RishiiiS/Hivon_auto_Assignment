@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useFetch } from '@/hooks/useFetch';
 import CommentSection from '@/components/comment/CommentSection';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
 
 // ---- SVG Icons ----
@@ -63,31 +63,6 @@ function formatDate(d) {
 function readTime(text = '') {
   return Math.max(1, Math.round(text.trim().split(/\s+/).length / 200));
 }
-function renderBody(text = '') {
-  if (!text) return null;
-  return text.split(/\n\n+/).map((para, i) => {
-    const t = para.trim();
-    if (t.startsWith('>')) {
-      return (
-        <blockquote key={i} style={{
-          borderLeft: '3px solid #2563eb',
-          marginLeft: 0,
-          paddingLeft: 20,
-          fontStyle: 'italic',
-          color: '#374151',
-          fontSize: '1.05rem',
-          lineHeight: 1.75,
-          margin: '28px 0',
-        }}>
-          {t.replace(/^>\s*/, '')}
-        </blockquote>
-      );
-    }
-    return (
-      <p key={i} style={{ marginBottom: '1.4em' }}>{t}</p>
-    );
-  });
-}
 
 // ---- Shared style tokens ----
 const FONT_SERIF = "'Playfair Display', Georgia, 'Times New Roman', serif";
@@ -104,6 +79,29 @@ export default function PostDetailPage() {
   const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
+  const [purifier, setPurifier] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    import('dompurify')
+      .then((mod) => {
+        const createDOMPurify = mod.default;
+        const instance = createDOMPurify?.sanitize ? createDOMPurify : createDOMPurify(window);
+        if (!cancelled) setPurifier(instance);
+      })
+      .catch(() => {
+        if (!cancelled) setPurifier(null);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const safeBodyHtml = useMemo(() => {
+    const html = data?.post?.body || '';
+    if (!html) return '';
+    if (purifier?.sanitize) return purifier.sanitize(html);
+    const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    return text ? `<p>${text}</p>` : '';
+  }, [purifier, data?.post?.body]);
 
   useEffect(() => {
     let isMounted = true;
@@ -355,9 +353,10 @@ export default function PostDetailPage() {
                 .archive-desktop-nav { display: none !important; }
               }
             `}</style>
-            <div className="archive-body">
-              {renderBody(post.body)}
-            </div>
+            <div
+              className="archive-body prose max-w-none"
+              dangerouslySetInnerHTML={{ __html: safeBodyHtml || '' }}
+            />
           </article>
 
           {/* ---- Action bar ---- */}
