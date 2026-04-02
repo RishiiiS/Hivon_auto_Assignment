@@ -116,7 +116,7 @@ export default function CreatePostPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans selection:bg-blue-100 relative z-50">
+    <div className="min-h-screen w-full flex flex-col bg-white overflow-x-hidden font-sans selection:bg-blue-100 relative z-50">
       
       {/* 1. Top Navbar (Static, #FAFAFA bg exactly matching Stitch screenshot) */}
       <nav className="sticky top-0 w-full h-16 bg-[#FAFAFA] z-50 flex items-center justify-between px-6 lg:px-10 border-b border-gray-100">
@@ -152,7 +152,7 @@ export default function CreatePostPage() {
             </div>
          )}
 
-         <div className="max-w-3xl mx-auto px-4 lg:px-0 mt-10 relative">
+         <div className="w-full max-w-[800px] mx-auto px-4 md:px-8 mt-10 relative">
            
            {/* Cover Image Upload Area */}
            <div 
@@ -264,8 +264,9 @@ export default function CreatePostPage() {
       <style dangerouslySetInnerHTML={{__html: `
         #global-navbar { display: none !important; }
         #global-footer { display: none !important; }
-        #global-body { padding-top: 0 !important; background-color: #ffffff !important; }
-        #global-main { max-width: 100% !important; padding: 0 !important; }
+        #global-body aside { display: none !important; }
+        #global-body { padding-top: 0 !important; background-color: #ffffff !important; overflow-x: hidden !important; }
+        #global-main { max-width: 100% !important; padding: 0 !important; margin: 0 !important; overflow-x: hidden !important; }
 
         .tiptap p.is-editor-empty:first-child::before {
           color: #d1d5db; /* text-gray-300 */

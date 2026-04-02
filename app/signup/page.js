@@ -48,7 +48,7 @@ export default function SignupPage() {
         </div>
 
         {/* Signup Card Container */}
-        <div className="w-full max-w-[440px] bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] p-8 md:p-10 border border-gray-100 relative">
+        <div className="w-full max-w-[560px] bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] p-10 md:p-14 border border-gray-100 relative">
           
           <div className="text-center mb-8">
             <h1 className="text-3xl font-serif text-gray-900 mb-2">Create an Account</h1>
@@ -162,6 +162,7 @@ export default function SignupPage() {
       {/* Injecting CSS to ensure font-serif maps cleanly and hiding Navbar */}
       <style dangerouslySetInnerHTML={{__html: `
         #global-navbar { display: none !important; }
+        #global-sidebar { display: none !important; }
         #global-footer { display: none !important; }
         #global-body { padding-top: 0 !important; background-color: #FCFBFA !important; }
         #global-main { max-width: 100% !important; padding: 0 !important; }

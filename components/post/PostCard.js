@@ -60,7 +60,7 @@ export default function PostCard({ post, isFeatured }) {
 
   if (isFeatured) {
     return (
-      <div className="flex flex-col mb-10 group cursor-pointer border border-[#E9E9E9] rounded-[20px] overflow-hidden shadow-[0_4px_24px_-8px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.1)] transition-all bg-white relative">
+      <div className="w-full flex flex-col mb-10 group cursor-pointer border border-[#E9E9E9] rounded-[20px] overflow-hidden shadow-[0_4px_24px_-8px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.1)] transition-all bg-white relative">
         <Link href={`/posts/${post.id}`} className="absolute inset-0 z-10 block"></Link>
         <div className="w-full h-[300px] md:h-[450px] overflow-hidden bg-gray-100 relative">
            {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -96,30 +96,30 @@ export default function PostCard({ post, isFeatured }) {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 md:gap-14 p-6 md:p-8 mb-10 border border-[#E9E9E9] rounded-[20px] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.1)] transition-all bg-white group relative">
+    <div className="w-full p-5 flex flex-row gap-6 items-start border border-[#E9E9E9] rounded-[20px] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.1)] transition-all bg-white group relative mb-10">
       <Link href={`/posts/${post.id}`} className="absolute inset-0 z-10 block"></Link>
       
-      <div className="flex-1 min-w-0 flex flex-col justify-between order-2 md:order-1 z-20 pointer-events-none pr-2 md:pr-4">
+      <div className="flex-1 min-w-0 flex flex-col justify-between z-20 pointer-events-none">
         <div>
-          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-[0.06em] mb-4 flex items-center gap-2">
+          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-[0.06em] mb-3 flex items-center gap-2">
             <span className="text-gray-800">Technology</span> 
             <span className="text-gray-300 font-normal font-sans">/</span> 
             <span>{dateStr}</span>
           </div>
           
-            <h3 className="text-[28px] md:text-[32px] font-serif font-extrabold text-gray-900 leading-[1.15] mb-6 group-hover:text-[#0A4BB5] transition-colors tracking-tight">
+            <h3 className="text-[28px] md:text-[32px] font-serif font-extrabold text-gray-900 leading-[1.15] mb-4 group-hover:text-[#0A4BB5] transition-colors tracking-tight">
               {post.title}
             </h3>
           
           {post.summary && (
-             <div className="bg-[#FAF9F7] rounded-xl p-5 md:p-6 pb-6 md:pb-7 mb-7 relative border border-gray-100">
+             <div className="bg-[#FAF9F7] rounded-xl p-4 md:p-5 mb-5 relative border border-gray-100">
                <span className="text-[11px] font-extrabold text-[#0A4BB5] tracking-widest uppercase mr-4 block mb-2">AI SUMMARY</span>
-               <span className="text-[16px] md:text-[17px] font-serif italic text-gray-800 leading-[1.75] text-left break-words block">{post.summary}</span>
+               <span className="text-[16px] md:text-[17px] font-serif italic text-gray-800 leading-[1.75] text-left break-words block line-clamp-3">{post.summary}</span>
             </div>
           )}
         </div>
         
-        <div className="flex items-center justify-between mt-auto pt-4 md:pt-6">
+        <div className="flex items-center justify-between mt-auto pt-3 md:pt-4">
           <span className="text-[16px] font-semibold text-gray-900">{post.users?.name || 'User'}</span>
           <button 
              onClick={handleLike}
@@ -131,9 +131,9 @@ export default function PostCard({ post, isFeatured }) {
         </div>
       </div>
       
-      <div className="w-full md:w-[280px] lg:w-[290px] h-[260px] md:h-[280px] bg-gray-100 rounded-md overflow-hidden order-1 md:order-2 flex-shrink-0 cursor-pointer shadow-sm z-20 pointer-events-none relative">
+      <div className="w-[260px] h-[180px] bg-gray-100 rounded-md overflow-hidden flex-shrink-0 shadow-sm z-20 pointer-events-none relative">
          {/* eslint-disable-next-line @next/next/no-img-element */}
-         <img src={imgUrl} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out origin-center" alt={post.title} />
+         <img src={imgUrl} className="w-[260px] h-[180px] object-cover rounded-md flex-shrink-0 group-hover:scale-[1.03] transition-transform duration-700 ease-out origin-center" alt={post.title} />
       </div>
     </div>
   );

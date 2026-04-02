@@ -1,14 +1,15 @@
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useState, useRef, useEffect } from 'react';
 
 export default function Navbar() {
-  const pathname = usePathname();
+  const router = useRouter();
   const { user, loading, logout } = useAuth();
   
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [search, setSearch] = useState('');
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -21,6 +22,13 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const q = search.trim();
+    if (!q) return;
+    router.push(`/search?query=${encodeURIComponent(q)}`);
+  };
   
   return (
     <nav id="global-navbar" className="fixed top-0 w-full h-16 bg-white border-b border-gray-100 z-50 flex items-center justify-between px-6 lg:px-10 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
@@ -31,16 +39,29 @@ export default function Navbar() {
         <Link href="/" className="font-serif font-extrabold text-xl text-gray-900 tracking-tight transition-transform hover:scale-[1.01]">The Archive</Link>
       </div>
       
-      <div className="hidden md:flex items-center gap-8 text-sm font-extrabold h-full pt-[2px] absolute left-1/2 -translate-x-1/2">
-        <Link href="/" className={`h-full flex items-center border-b-[3px] mt-[1px] ${pathname === '/' ? 'border-[#0A4BB5] text-[#0A4BB5]' : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300 transition-colors'}`}>Home</Link>
-        {!loading && user && (
-          <Link href="/profile" className={`h-full flex items-center border-b-[3px] mt-[1px] ${pathname === '/profile' ? 'border-[#0A4BB5] text-[#0A4BB5]' : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300 transition-colors'}`}>Profile</Link>
-        )}
+      <div className="hidden md:flex flex-1 justify-center px-6">
+        <form onSubmit={handleSearchSubmit} className="w-full max-w-[520px]">
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1116.65 1.5a7.5 7.5 0 010 15.15z" />
+              </svg>
+            </span>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search posts..."
+              className="w-full h-10 pl-10 pr-3 rounded-full border border-gray-200 bg-[#FCFBFA] text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0A4BB5]/20 focus:border-[#0A4BB5]"
+            />
+          </div>
+        </form>
       </div>
 
       <div className="flex items-center gap-5">
-        <Link href="/search" className="text-gray-500 hover:text-[#0A4BB5] transition-colors p-1">
-           <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1116.65 1.5a7.5 7.5 0 010 15.15z"/></svg>
+        <Link href="/search" className="md:hidden text-gray-500 hover:text-[#0A4BB5] transition-colors p-1">
+          <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1116.65 1.5a7.5 7.5 0 010 15.15z" />
+          </svg>
         </Link>
         
         {loading ? (

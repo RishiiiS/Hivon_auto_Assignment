@@ -8,7 +8,7 @@ export default function Home() {
   const { data, loading, error } = useFetch('/posts/list');
 
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-5xl mx-auto pb-10 bg-[#FCFBFA]">
+    <div className="flex flex-col w-full max-w-[1100px] pb-10">
       
       {loading && <p className="text-gray-500 animate-pulse py-32 font-medium">Curating the archive...</p>}
       

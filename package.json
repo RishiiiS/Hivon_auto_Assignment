@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "next dev"
+    "dev": "next dev --webpack"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

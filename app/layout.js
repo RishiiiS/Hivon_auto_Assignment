@@ -1,5 +1,6 @@
 import '@/styles/globals.css';
 import Navbar from '@/components/layout/Navbar';
+import AppShell from '@/components/layout/AppShell';
 
 export const metadata = {
   title: 'Blog Platform',
@@ -19,9 +20,7 @@ export default function RootLayout({ children }) {
       </head>
       <body id="global-body" className="min-h-screen flex flex-col pt-16">
         <Navbar />
-        <main id="global-main" className="flex-1 max-w-5xl mx-auto w-full px-4 pt-10 pb-16">
-          {children}
-        </main>
+        <AppShell>{children}</AppShell>
 
         <footer id="global-footer" className="w-full bg-[#FAFAFA] border-t border-[#F0F0F0] py-4 px-6 lg:px-10 flex flex-col md:flex-row justify-between items-start md:items-end z-10 mt-auto shadow-inner">
            <div className="flex flex-col gap-2">

@@ -11,7 +11,7 @@ export default function SearchPage() {
   const { data, loading, error } = useFetch(`/posts/search?query=${encodeURIComponent(query)}`);
 
   return (
-    <div className="space-y-6 flex flex-col items-center py-10 w-full max-w-4xl mx-auto">
+    <div className="space-y-6 flex flex-col py-10 w-full max-w-[1100px]">
       <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight text-center">
         Search Results for &quot;{query}&quot;
       </h1>
