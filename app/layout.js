@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
           {children}
         </main>
 
-        <footer id="global-footer" className="w-full bg-[#FAFAFA] border-t border-[#F0F0F0] py-10 px-6 lg:px-10 flex flex-col md:flex-row justify-between items-start md:items-end z-10 mt-auto shadow-inner">
+        <footer id="global-footer" className="w-full bg-[#FAFAFA] border-t border-[#F0F0F0] py-4 px-6 lg:px-10 flex flex-col md:flex-row justify-between items-start md:items-end z-10 mt-auto shadow-inner">
            <div className="flex flex-col gap-2">
               <h3 className="font-serif font-extrabold text-gray-900 text-lg tracking-tight">The Editorial Archive</h3>
               <p className="text-xs text-gray-500 font-medium tracking-wide">© 2024 The Editorial Archive. Designed for the Digital Curator.</p>

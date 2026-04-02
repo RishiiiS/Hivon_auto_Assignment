@@ -107,5 +107,29 @@ export async function getCurrentUser(token) {
     throw new Error('User profile not found: ' + dbError.message);
   }
 
-  return dbUser;
+  // Also manually map avatar_url if it exists in the row
+  return { ...dbUser, avatar_url: dbUser.avatar_url || null };
+}
+
+export async function updateUserProfile(token, updates) {
+  // Validate caller identity
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !user) throw new Error('Unauthorized');
+
+  // Must run on secured client
+  const client = getAuthClient(token);
+
+  // Update rows
+  const { data, error } = await client
+    .from('users')
+    .update(updates)
+    .eq('id', user.id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error('Failed to update profile: ' + error.message);
+  }
+
+  return data;
 }

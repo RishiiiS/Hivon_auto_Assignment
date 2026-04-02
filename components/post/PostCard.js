@@ -60,28 +60,34 @@ export default function PostCard({ post, isFeatured }) {
 
   if (isFeatured) {
     return (
-      <div className="flex flex-col mb-4 group cursor-pointer border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all bg-white relative">
+      <div className="flex flex-col mb-10 group cursor-pointer border border-[#E9E9E9] rounded-[20px] overflow-hidden shadow-[0_4px_24px_-8px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.1)] transition-all bg-white relative">
         <Link href={`/posts/${post.id}`} className="absolute inset-0 z-10 block"></Link>
         <div className="w-full h-[300px] md:h-[450px] overflow-hidden bg-gray-100 relative">
            {/* eslint-disable-next-line @next/next/no-img-element */}
            <img src={imgUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out" alt={post.title} />
         </div>
-        <div className="p-6 md:p-8 flex flex-col items-start bg-white z-20 pointer-events-none">
-           <span className="text-[10px] font-bold text-[#0A4BB5] tracking-widest uppercase mb-3">EDITORIAL FOCUS</span>
+        <div className="p-8 md:p-10 flex flex-col items-start bg-white z-20 pointer-events-none">
+           <span className="text-[11px] font-bold text-[#0A4BB5] tracking-widest uppercase mb-4">EDITORIAL FOCUS</span>
            
-             <h2 className="text-4xl md:text-[50px] font-serif font-extrabold text-gray-900 tracking-tight leading-[1.05] mb-5 group-hover:text-[#0A4BB5] transition-colors">{post.title}</h2>
+             <h2 className="text-4xl md:text-[50px] font-serif font-extrabold text-gray-900 tracking-tight leading-[1.05] mb-6 group-hover:text-[#0A4BB5] transition-colors">{post.title}</h2>
            
            {post.summary && (
-             <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl">
+             <p className="text-[17px] md:text-[19px] text-gray-800 mb-10 leading-[1.75] font-serif italic max-w-3xl">
                {post.summary}
              </p>
            )}
-           <div className="flex items-center gap-3">
-             <img src="https://i.pravatar.cc/150?u=a04258114e29026702d" className="w-6 h-6 rounded-full object-cover shadow-sm border border-gray-100" alt="Author"/>
-             <span className="text-xs font-extrabold text-gray-900 flex items-center gap-2">
+           <div className="flex items-center gap-4 mt-auto">
+             {post.users?.avatar_url ? (
+               <img src={post.users.avatar_url} className="w-6 h-6 rounded-full object-cover shadow-sm border border-gray-100" alt="Author"/>
+             ) : (
+               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center text-white text-[10px] font-bold shadow-sm border border-gray-100">
+                 {(post.users?.name || 'U').charAt(0).toUpperCase()}
+               </div>
+             )}
+             <span className="text-[15px] font-semibold text-gray-900 flex items-center gap-2">
                 {post.users?.name || 'User'} 
-                <span className="text-gray-300 font-normal text-[8px]">●</span> 
-                <span className="text-gray-500 font-medium">12 min read</span>
+                <span className="text-gray-300 font-normal text-[10px] mx-1">●</span> 
+                <span className="text-gray-500 font-medium text-[13px]">12 min read</span>
              </span>
            </div>
         </div>
@@ -90,36 +96,36 @@ export default function PostCard({ post, isFeatured }) {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 md:gap-14 py-8 border-b border-[#F0F0F0] last:border-0 group relative">
+    <div className="flex flex-col md:flex-row gap-6 md:gap-14 p-6 md:p-8 mb-10 border border-[#E9E9E9] rounded-[20px] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.1)] transition-all bg-white group relative">
       <Link href={`/posts/${post.id}`} className="absolute inset-0 z-10 block"></Link>
       
-      <div className="flex-1 flex flex-col justify-between order-2 md:order-1 z-20 pointer-events-none pr-2">
+      <div className="flex-1 min-w-0 flex flex-col justify-between order-2 md:order-1 z-20 pointer-events-none pr-2 md:pr-4">
         <div>
-          <div className="text-[10.5px] font-bold text-gray-500 uppercase tracking-[0.06em] mb-3 flex items-center gap-2">
+          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-[0.06em] mb-4 flex items-center gap-2">
             <span className="text-gray-800">Technology</span> 
             <span className="text-gray-300 font-normal font-sans">/</span> 
             <span>{dateStr}</span>
           </div>
           
-            <h3 className="text-[28px] md:text-[32px] font-serif font-extrabold text-gray-900 leading-[1.15] mb-5 group-hover:text-[#0A4BB5] transition-colors tracking-tight">
+            <h3 className="text-[28px] md:text-[32px] font-serif font-extrabold text-gray-900 leading-[1.15] mb-6 group-hover:text-[#0A4BB5] transition-colors tracking-tight">
               {post.title}
             </h3>
           
           {post.summary && (
-             <div className="bg-[#FAF9F7] rounded-md p-5 pb-6 mb-7 relative">
-               <span className="text-[11px] font-extrabold text-[#0A4BB5] tracking-widest uppercase mr-4">AI SUMMARY</span>
-               <span className="text-[15px] font-serif italic text-gray-700 leading-[1.6] text-left break-words">{post.summary}</span>
+             <div className="bg-[#FAF9F7] rounded-xl p-5 md:p-6 pb-6 md:pb-7 mb-7 relative border border-gray-100">
+               <span className="text-[11px] font-extrabold text-[#0A4BB5] tracking-widest uppercase mr-4 block mb-2">AI SUMMARY</span>
+               <span className="text-[16px] md:text-[17px] font-serif italic text-gray-800 leading-[1.75] text-left break-words block">{post.summary}</span>
             </div>
           )}
         </div>
         
-        <div className="flex items-center justify-between text-[13px] font-bold text-gray-800 mt-2">
-          <span>{post.users?.name || 'User'}</span>
+        <div className="flex items-center justify-between mt-auto pt-4 md:pt-6">
+          <span className="text-[16px] font-semibold text-gray-900">{post.users?.name || 'User'}</span>
           <button 
              onClick={handleLike}
-             className={`flex items-center gap-1.5 transition-colors pointer-events-auto z-30 relative hover:text-red-500 font-semibold tracking-wide ${isLiked ? 'text-red-500' : 'text-gray-600'}`}
+             className={`flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-red-50 hover:scale-105 transition-all pointer-events-auto z-30 relative font-semibold tracking-wide text-[15px] ${isLiked ? 'text-red-500 bg-red-50' : 'text-gray-500'}`}
           >
-             <svg className={`w-4 h-4 transition-transform ${isLiked ? 'scale-110' : ''}`} viewBox="0 0 24 24" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+             <svg className={`w-5 h-5 transition-transform ${isLiked ? 'scale-110' : ''}`} viewBox="0 0 24 24" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
              {likeCount}
           </button>
         </div>

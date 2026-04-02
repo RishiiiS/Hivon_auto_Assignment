@@ -52,14 +52,25 @@ export default function Navbar() {
                Write
              </Link>
              <div className="relative" ref={dropdownRef}>
-               <img 
-                 src="https://i.pravatar.cc/150?u=a04258114e29026702d" 
-                 className="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover shadow-sm border border-gray-200 cursor-pointer hover:border-[#0A4BB5] transition-all focus:outline-none focus:ring-2 focus:ring-[#0A4BB5]" 
-                 alt="Profile"
-                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                 tabIndex={0}
-                 onKeyDown={(e) => { if (e.key === 'Enter') setDropdownOpen(!dropdownOpen); }}
-               />
+                {user.avatar_url ? (
+                  <img 
+                    src={user.avatar_url} 
+                    className="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover shadow-sm border border-gray-200 cursor-pointer hover:border-[#0A4BB5] transition-all focus:outline-none focus:ring-2 focus:ring-[#0A4BB5]" 
+                    alt="Profile"
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter') setDropdownOpen(!dropdownOpen); }}
+                  />
+                ) : (
+                  <div 
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') setDropdownOpen(!dropdownOpen); }}
+                    tabIndex={0}
+                    className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center text-white font-bold text-sm cursor-pointer shadow-sm border border-gray-200 hover:border-[#0A4BB5] transition-all focus:outline-none focus:ring-2 focus:ring-[#0A4BB5]"
+                  >
+                    {(user.name || 'U').charAt(0).toUpperCase()}
+                  </div>
+                )}
                
                {dropdownOpen && (
                  <div className="absolute right-0 mt-3 w-40 bg-white border border-gray-100 shadow-xl rounded-xl overflow-hidden z-50 transform origin-top-right transition-all duration-200 animate-in fade-in slide-in-from-top-2">

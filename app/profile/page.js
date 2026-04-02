@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
@@ -14,6 +14,9 @@ export default function ProfilePage() {
 
   const [posts, setPosts] = useState([]);
   const [postsLoading, setPostsLoading] = useState(true);
+  
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -45,6 +48,32 @@ export default function ProfilePage() {
     return () => { isMounted = false; };
   }, [user]);
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const { url } = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      await api.put('/auth/profile', { avatar_url: url });
+      
+      // Reload strictly triggers useAuth refresh accurately matching the new bounds natively.
+      window.location.reload();
+      
+    } catch (err) {
+      console.error('Failed to update avatar:', err);
+      alert('Failed to upload profile picture: ' + err.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   if (authLoading || (!user && !authLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fafaf8]">
@@ -58,14 +87,40 @@ export default function ProfilePage() {
       <div className="max-w-5xl mx-auto">
         
         {/* User Info Section */}
-        <div className="flex flex-col items-center mb-24">
-          <div className="w-32 h-32 md:w-40 md:h-40 rounded-xl overflow-hidden shadow-lg mb-6 border-4 border-white transform transition-transform hover:scale-105 duration-300">
-            <img 
-              src="https://i.pravatar.cc/300?u=a04258114e29026702d" 
-              alt={user.name || 'User'} 
-              className="w-full h-full object-cover"
-            />
+        <div className="flex flex-col items-center mb-24 relative group">
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden shadow-lg mb-6 border-4 border-white cursor-pointer group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-[1.02]"
+          >
+            {user.avatar_url ? (
+              <img 
+                src={user.avatar_url} 
+                alt={user.name || 'User'} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center text-white text-5xl md:text-6xl font-black font-sans">
+                {(user.name || 'U').charAt(0).toUpperCase()}
+              </div>
+            )}
+            
+            <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 ${isUploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+              {isUploading ? (
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <span className="text-white text-xs font-bold tracking-widest uppercase">Edit</span>
+              )}
+            </div>
           </div>
+          
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleImageUpload} 
+            accept="image/*" 
+            className="hidden" 
+          />
+
           <h1 style={{ fontFamily: FONT_SERIF }} className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">
             {user.name || 'Anonymous'}
           </h1>

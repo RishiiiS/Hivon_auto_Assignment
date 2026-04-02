@@ -93,7 +93,7 @@ function renderBody(text = '') {
 const FONT_SERIF = "'Playfair Display', Georgia, 'Times New Roman', serif";
 const FONT_SANS  = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const BG         = '#f5f5f0';
-const COL_MAX    = 680;
+const COL_MAX    = 900;
 
 export default function PostDetailPage() {
   const { id } = useParams();
@@ -103,6 +103,7 @@ export default function PostDetailPage() {
 
   const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
+  const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -145,14 +146,17 @@ export default function PostDetailPage() {
   useEffect(() => {
     const navbar = document.querySelector('nav');
     const main   = document.querySelector('main');
+    const footer = document.querySelector('#global-footer');
     const body   = document.body;
     if (navbar) navbar.style.display  = 'none';
     if (main)   { main.style.maxWidth = 'none'; main.style.padding = '0'; }
+    if (footer) footer.style.display  = 'none';
     body.style.paddingTop = '0';
     body.style.background = BG;
     return () => {
       if (navbar) navbar.style.display  = '';
       if (main)   { main.style.maxWidth = ''; main.style.padding = ''; }
+      if (footer) footer.style.display  = '';
       body.style.paddingTop = '';
       body.style.background = '';
     };
@@ -230,7 +234,7 @@ export default function PostDetailPage() {
 
       {/* ========= SCROLLABLE BODY ========= */}
       <div style={{ flex:1, overflowY:'auto', WebkitOverflowScrolling:'touch' }}>
-        <div style={{ maxWidth:COL_MAX, margin:'0 auto', padding:'44px 24px 140px' }}>
+        <div style={{ maxWidth:COL_MAX, margin:'0 auto', padding:'44px 24px 44px' }}>
 
           {/* Category */}
           <p style={{ fontSize:'0.69rem', fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:'#2563eb', marginBottom:14, marginTop:0 }}>
@@ -305,8 +309,26 @@ export default function PostDetailPage() {
                 ✨ AI Summary
               </p>
               <p style={{ fontSize:'0.88rem', color:'#1e3a8a', fontStyle:'italic', lineHeight:1.65, margin:0 }}>
-                {post.summary}
+                {isSummaryExpanded ? post.summary : (post.summary.length > 200 ? post.summary.slice(0, 200) + '...' : post.summary)}
               </p>
+              {post.summary.length > 200 && (
+                <button
+                  onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}
+                  style={{
+                    marginTop: '8px',
+                    background: 'none',
+                    border: 'none',
+                    color: '#2563eb',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: 0,
+                    textDecoration: 'underline'
+                  }}
+                >
+                  {isSummaryExpanded ? 'Show less' : 'Show more'}
+                </button>
+              )}
             </div>
           )}
 
