@@ -2,7 +2,7 @@ export default function AboutPage() {
   return (
     <div className="w-full">
       {/* Hero */}
-      <section className="pt-6 md:pt-10 pb-12 md:pb-16">
+      <section id="top" className="pt-6 md:pt-10 pb-12 md:pb-16 scroll-mt-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
           <h1 className="lg:col-span-8 font-serif italic font-semibold tracking-tight leading-[0.92] text-[clamp(3.2rem,6.6vw,6.7rem)] text-gray-900">
             The art of{' '}
@@ -35,7 +35,7 @@ export default function AboutPage() {
       </section>
 
       {/* Mission */}
-      <section className="pt-2 pb-14 md:pb-20">
+      <section id="mission" className="pt-2 pb-14 md:pb-20 scroll-mt-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           <div className="lg:col-span-6">
             <div className="text-[11px] font-extrabold tracking-[0.28em] text-[#0A4BB5] uppercase mb-6">
@@ -66,7 +66,7 @@ export default function AboutPage() {
       </section>
 
       {/* Pillars */}
-      <section className="pb-16 md:pb-24">
+      <section id="pillars" className="pb-16 md:pb-24 scroll-mt-24">
         <h3 className="font-serif italic text-[clamp(2rem,3.8vw,3.1rem)] text-gray-900 mb-10">
           The Pillars of Curatorship
         </h3>
@@ -95,6 +95,45 @@ export default function AboutPage() {
               <p className="text-gray-700 leading-relaxed font-medium text-[15px]">{p.d}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section id="contact" className="pb-12 md:pb-20 scroll-mt-24">
+        <div className="rounded-[26px] overflow-hidden border border-[#EAEAEA] bg-white/60 shadow-[0_10px_35px_rgb(0,0,0,0.04)]">
+          <div className="px-6 md:px-10 py-10 md:py-12 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+            <div className="lg:col-span-5">
+              <div className="text-[11px] font-extrabold tracking-[0.28em] text-[#0A4BB5] uppercase mb-4">
+                Contact
+              </div>
+              <h3 className="font-serif font-extrabold tracking-tight leading-[1.05] text-[clamp(1.8rem,3vw,2.6rem)] text-gray-900">
+                Let&apos;s build an archive
+                <br />
+                worth returning to.
+              </h3>
+            </div>
+
+            <div className="lg:col-span-7 lg:pt-8">
+              <p className="text-[15px] md:text-[17px] text-gray-700 leading-[1.9] font-medium">
+                For partnerships, submissions, or editorial inquiries, reach out and our team will
+                respond promptly.
+              </p>
+              <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-3">
+                <a
+                  href="mailto:hello@thearchive.example"
+                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-gray-900 text-white text-[11px] font-bold tracking-widest uppercase hover:bg-black transition-colors"
+                >
+                  Email Us
+                </a>
+                <a
+                  href="/"
+                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-800 text-[11px] font-bold tracking-widest uppercase hover:bg-gray-50 transition-colors"
+                >
+                  Back to Archive
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </div>

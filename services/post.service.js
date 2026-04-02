@@ -20,23 +20,31 @@ export async function createPost({ title, body, image_url, author_id, summary })
 }
 
 export async function getPosts({ limit = 10, offset = 0, authorId = null }) {
-  let query = supabase
-    .from('posts')
-    .select('*, users ( name )', { count: 'exact' })
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+  const buildQuery = (select) => {
+    let query = supabase
+      .from('posts')
+      .select(select, { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-  if (authorId) {
-    query = query.eq('author_id', authorId);
+    if (authorId) query = query.eq('author_id', authorId);
+    return query;
+  };
+
+  // Prefer a lean payload for the feed; fall back to `*` if the DB schema differs.
+  const preferredSelect = 'id, title, created_at, image_url, summary, author_id, users ( name )';
+  const preferred = await buildQuery(preferredSelect);
+
+  if (!preferred.error) {
+    return { posts: preferred.data, total: preferred.count };
   }
 
-  const { data, error, count } = await query;
-
-  if (error) {
-    throw new Error('Failed to fetch posts: ' + error.message);
+  const fallback = await buildQuery('*, users ( name )');
+  if (fallback.error) {
+    throw new Error('Failed to fetch posts: ' + fallback.error.message);
   }
 
-  return { posts: data, total: count };
+  return { posts: fallback.data, total: fallback.count };
 }
 
 export async function getPostById(id) {
@@ -93,4 +101,3 @@ export async function searchPosts(query, { limit = 10, offset = 0 }) {
 
   return data;
 }
-

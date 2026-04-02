@@ -38,10 +38,21 @@ export default function PostCard({ post, isFeatured, onDeleted, currentUser }) {
   // Format dates statically for UI if missing
   const dateStr = post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Oct 24, 2024';
 
-  const [likeCount, setLikeCount] = useState(0);
-  const [isLiked, setIsLiked] = useState(false);
+  const hasLocalLikeMutation = useRef(false);
+  const [likeCount, setLikeCount] = useState(
+    typeof post.likeCount === 'number' ? post.likeCount : 0
+  );
+  const [isLiked, setIsLiked] = useState(Boolean(post.isLiked));
 
   useEffect(() => {
+    if (hasLocalLikeMutation.current) return;
+    if (typeof post.likeCount === 'number') setLikeCount(post.likeCount);
+    if (typeof post.isLiked === 'boolean') setIsLiked(post.isLiked);
+  }, [post.likeCount, post.isLiked]);
+
+  useEffect(() => {
+    // If the feed already provided like data, skip per-card requests.
+    if (typeof post.likeCount === 'number' || typeof post.isLiked === 'boolean') return;
     let isMounted = true;
     async function fetchLikes() {
       try {
@@ -61,6 +72,7 @@ export default function PostCard({ post, isFeatured, onDeleted, currentUser }) {
   const handleLike = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    hasLocalLikeMutation.current = true;
     
     // Optimistic Update
     const prevLiked = isLiked;

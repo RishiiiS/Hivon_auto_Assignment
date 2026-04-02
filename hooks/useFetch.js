@@ -15,10 +15,13 @@ export function useFetch(endpoint, immediate = true) {
     try {
       const result = await api.get(endpoint);
       setData(result);
+      if (result?.error) {
+        setError(result.error);
+      }
       return result;
     } catch (err) {
       setError(err.message);
-      throw err;
+      return { error: err.message };
     } finally {
       setLoading(false);
     }

@@ -8,14 +8,15 @@ export async function GET(request) {
     const offsetParam = searchParams.get('offset');
     
     // 4. Add pagination (limit + offset)
-    const limit = limitParam ? parseInt(limitParam, 10) : 10;
-    const offset = offsetParam ? parseInt(offsetParam, 10) : 0;
+    const parsedLimit = limitParam ? parseInt(limitParam, 10) : NaN;
+    const parsedOffset = offsetParam ? parseInt(offsetParam, 10) : NaN;
+    const limit = Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 100;
+    const offset = Number.isFinite(parsedOffset) && parsedOffset >= 0 ? parsedOffset : 0;
     const authorId = searchParams.get('authorId');
 
     // 4. Return: id, title, image_url, summary, author_id
     // 7. Do NOT call AI during fetch
     const { posts, total } = await getPosts({ limit, offset, authorId });
-    console.log("FETCHED POSTS:", JSON.stringify(posts, null, 2));
 
     return NextResponse.json({ 
       posts,

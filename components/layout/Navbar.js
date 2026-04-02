@@ -1,11 +1,12 @@
 'use client';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useState, useRef, useEffect } from 'react';
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, loading, logout } = useAuth();
   
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -40,21 +41,37 @@ export default function Navbar() {
       </div>
       
       <div className="hidden md:flex flex-1 justify-center px-6">
-        <form onSubmit={handleSearchSubmit} className="w-full max-w-[520px]">
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1116.65 1.5a7.5 7.5 0 010 15.15z" />
-              </svg>
-            </span>
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search posts..."
-              className="w-full h-10 pl-10 pr-3 rounded-full border border-gray-200 bg-[#FCFBFA] text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0A4BB5]/20 focus:border-[#0A4BB5]"
-            />
+        {pathname === '/about' && user ? (
+          <div className="flex items-center gap-6 text-[11px] font-extrabold tracking-[0.22em] uppercase text-gray-500">
+            <Link href="/" className="hover:text-gray-900 transition-colors">
+              Home
+            </Link>
+            <Link href="/profile" className="hover:text-gray-900 transition-colors">
+              Profile
+            </Link>
           </div>
-        </form>
+        ) : (
+          <form onSubmit={handleSearchSubmit} className="w-full max-w-[520px]">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1116.65 1.5a7.5 7.5 0 010 15.15z"
+                  />
+                </svg>
+              </span>
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search posts..."
+                className="w-full h-10 pl-10 pr-3 rounded-full border border-gray-200 bg-[#FCFBFA] text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0A4BB5]/20 focus:border-[#0A4BB5]"
+              />
+            </div>
+          </form>
+        )}
       </div>
 
       <div className="flex items-center gap-5">

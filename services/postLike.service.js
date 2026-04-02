@@ -81,3 +81,42 @@ export async function getLikeSummary(post_id, user_id) {
 
   return { count: count || 0, liked };
 }
+
+export async function getLikeSummaries(post_ids = [], user_id = null) {
+  const ids = Array.isArray(post_ids) ? post_ids.filter(Boolean) : [];
+  if (ids.length === 0) return { countsByPostId: {}, likedByPostId: {} };
+
+  const { data, error } = await supabaseStateless
+    .from('post_likes')
+    .select('post_id')
+    .in('post_id', ids);
+
+  if (error) {
+    throw new Error('Failed to get like summaries: ' + error.message);
+  }
+
+  const countsByPostId = {};
+  for (const row of data || []) {
+    const pid = String(row.post_id);
+    countsByPostId[pid] = (countsByPostId[pid] || 0) + 1;
+  }
+
+  const likedByPostId = {};
+  if (user_id) {
+    const { data: likedRows, error: likedError } = await supabaseStateless
+      .from('post_likes')
+      .select('post_id')
+      .eq('user_id', user_id)
+      .in('post_id', ids);
+
+    if (likedError) {
+      throw new Error('Failed to get liked posts: ' + likedError.message);
+    }
+
+    for (const row of likedRows || []) {
+      likedByPostId[String(row.post_id)] = true;
+    }
+  }
+
+  return { countsByPostId, likedByPostId };
+}
