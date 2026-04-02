@@ -2,6 +2,7 @@
 
 Next.js app with Supabase auth + posts, Cloudinary uploads, and a notes panel.
 
+
 ## Setup
 
 1. Install deps: `npm install`
