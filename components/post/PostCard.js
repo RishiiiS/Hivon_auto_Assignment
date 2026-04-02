@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 function stripHtmlToText(html = '') {
   return String(html)
@@ -17,10 +18,20 @@ function stripHtmlToText(html = '') {
     .trim();
 }
 
-export default function PostCard({ post, isFeatured }) {
+export default function PostCard({ post, isFeatured, onDeleted, currentUser }) {
+  const router = useRouter();
   const fallbackImage = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2940&auto=format&fit=crop';
   const imgUrl = post.image_url || fallbackImage;
   const summaryText = post.summary ? stripHtmlToText(post.summary) : '';
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  const authorId = post.userId ?? post.author_id ?? post.user_id ?? post.users?.id;
+  const isAuthor =
+    authorId != null && currentUser?.id != null && String(authorId) === String(currentUser.id);
+  const isAdmin = currentUser?.role === 'admin';
+  const canModify = Boolean(currentUser && (isAuthor || isAdmin));
   
   // Format dates statically for UI if missing
   const dateStr = post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Oct 24, 2024';
@@ -72,10 +83,83 @@ export default function PostCard({ post, isFeatured }) {
     }
   };
 
+  const toggleMenu = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsMenuOpen((prev) => !prev);
+  };
+
+  const handleEdit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsMenuOpen(false);
+    router.push(`/edit/${post.id}`);
+  };
+
+  const handleDelete = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsMenuOpen(false);
+
+    if (!confirm('Delete this post?')) return;
+
+    const res = await api.delete(`/posts/${post.id}`);
+    if (res?.error) {
+      alert(res.error);
+      return;
+    }
+
+    onDeleted?.(post.id);
+  };
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const handleOutside = (event) => {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(event.target)) setIsMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [isMenuOpen]);
+
   if (isFeatured) {
     return (
       <div className="w-full flex flex-col mb-10 group cursor-pointer border border-[#E9E9E9] rounded-[20px] overflow-hidden shadow-[0_4px_24px_-8px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.1)] transition-all bg-white relative">
         <Link href={`/posts/${post.id}`} className="absolute inset-0 z-10 block"></Link>
+
+        {canModify && (
+          <div ref={menuRef} className="absolute top-4 right-4 z-30 pointer-events-auto">
+            <button
+              type="button"
+              onClick={toggleMenu}
+              className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
+              aria-label="Post actions"
+            >
+              <span className="text-xl leading-none">⋮</span>
+            </button>
+            {isMenuOpen && (
+              <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-100 rounded-md shadow-md z-20 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={handleEdit}
+                  className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50"
+                >
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="w-full h-[300px] md:h-[450px] overflow-hidden bg-gray-100 relative">
            {/* eslint-disable-next-line @next/next/no-img-element */}
            <img src={imgUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out" alt={post.title} />
@@ -112,6 +196,37 @@ export default function PostCard({ post, isFeatured }) {
   return (
     <div className="w-full p-5 flex flex-row gap-6 items-start border border-[#E9E9E9] rounded-[20px] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.1)] transition-all bg-white group relative mb-10">
       <Link href={`/posts/${post.id}`} className="absolute inset-0 z-10 block"></Link>
+
+      {canModify && (
+        <div ref={menuRef} className="absolute top-4 right-4 z-30 pointer-events-auto">
+          <button
+            type="button"
+            onClick={toggleMenu}
+            className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
+            aria-label="Post actions"
+          >
+            <span className="text-xl leading-none">⋮</span>
+          </button>
+          {isMenuOpen && (
+            <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-100 rounded-md shadow-md z-20 overflow-hidden">
+              <button
+                type="button"
+                onClick={handleEdit}
+                className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50"
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
+      )}
       
       <div className="flex-1 min-w-0 flex flex-col justify-between z-20 pointer-events-none">
         <div>

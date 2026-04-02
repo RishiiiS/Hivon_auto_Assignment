@@ -5,6 +5,7 @@ import { useFetch } from '@/hooks/useFetch';
 import CommentSection from '@/components/comment/CommentSection';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/hooks/useAuth';
 
 // ---- SVG Icons ----
 const ArrowLeftIcon = () => (
@@ -75,11 +76,13 @@ export default function PostDetailPage() {
   const router  = useRouter();
   const { data, loading, error } = useFetch(`/posts/${id}`);
   const { data: commentsData }   = useFetch(`/comments/list?post_id=${id}`);
+  const { user: currentUser, loading: authLoading } = useAuth();
 
   const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const [purifier, setPurifier] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,6 +105,18 @@ export default function PostDetailPage() {
     const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     return text ? `<p>${text}</p>` : '';
   }, [purifier, data?.post?.body]);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleDocMouseDown = (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (target.closest('[data-post-menu]')) return;
+      setIsMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleDocMouseDown);
+    return () => document.removeEventListener('mousedown', handleDocMouseDown);
+  }, [isMenuOpen]);
 
   useEffect(() => {
     let isMounted = true;
@@ -160,7 +175,7 @@ export default function PostDetailPage() {
     };
   }, []);
 
-  if (loading) return (
+  if (loading || authLoading) return (
     <div style={{ position:'fixed', inset:0, display:'flex', alignItems:'center', justifyContent:'center', background:BG, fontFamily:FONT_SANS }}>
       <span style={{ color:'#9ca3af', fontSize:'0.9rem' }}>Loading article…</span>
     </div>
@@ -177,6 +192,22 @@ export default function PostDetailPage() {
   const post     = data.post;
   const mins     = readTime(post.body);
   const comments = commentsData?.comments || [];
+  const authorId = post.userId ?? post.author_id ?? post.user_id ?? post.users?.id;
+  const isAuthor =
+    authorId != null && currentUser?.id != null && String(authorId) === String(currentUser.id);
+  const isAdmin = currentUser?.role === 'admin';
+  const canModify = Boolean(currentUser && (isAuthor || isAdmin));
+
+  const handleEdit = () => router.push(`/edit/${post.id}`);
+  const handleDelete = async () => {
+    if (!confirm('Delete this post?')) return;
+    const res = await api.delete(`/posts/${post.id}`);
+    if (res?.error) {
+      alert(res.error);
+      return;
+    }
+    router.push('/');
+  };
 
   return (
     <div style={{ position:'fixed', inset:0, display:'flex', flexDirection:'column', background:BG, fontFamily:FONT_SANS, overflow:'hidden' }}>
@@ -276,9 +307,47 @@ export default function PostDetailPage() {
               </p>
             </div>
             {/* Dots */}
-            <button style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af', display:'flex', marginLeft:'auto', flexShrink:0 }}>
-              <DotsIcon />
-            </button>
+            {canModify && (
+              <div data-post-menu style={{ position: 'relative', marginLeft: 'auto', flexShrink: 0 }}>
+                <button
+                  onClick={() => setIsMenuOpen((v) => !v)}
+                  style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af', display:'flex', padding: 6, borderRadius: 9999 }}
+                  aria-label="Post actions"
+                >
+                  <DotsIcon />
+                </button>
+                {isMenuOpen && (
+                  <div style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: '100%',
+                    marginTop: 8,
+                    width: 140,
+                    background: '#fff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: 10,
+                    boxShadow: '0 12px 30px rgba(0,0,0,0.08)',
+                    overflow: 'hidden',
+                    zIndex: 50,
+                  }}>
+                    <button
+                      onClick={() => { setIsMenuOpen(false); handleEdit(); }}
+                      style={{ width: '100%', padding: '10px 12px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#111', background: 'none', border: 'none', cursor: 'pointer' }}
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => { setIsMenuOpen(false); handleDelete(); }}
+                      style={{ width: '100%', padding: '10px 12px', textAlign: 'left', fontSize: 13, fontWeight: 700, color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', borderTop: '1px solid #f3f4f6' }}
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Featured Image */}

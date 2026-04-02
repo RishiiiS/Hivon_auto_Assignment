@@ -166,7 +166,12 @@ export default function ProfilePage() {
           ) : (
             <div className="flex flex-col">
               {posts.map(post => (
-                <PostCard key={post.id} post={post} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  currentUser={user}
+                  onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
+                />
               ))}
             </div>
           )}
