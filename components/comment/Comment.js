@@ -52,7 +52,7 @@ export default function Comment({ comment, ThumbUpIcon, onReply, onDelete, curre
         <div className="flex-1 min-w-0">
           {/* Header */}
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className="font-semibold text-gray-900 text-sm">{comment.user_name || 'Anonymous'}</span>
+            <span className="font-semibold text-gray-900 text-sm">{comment.user_name || 'User'}</span>
             <span className="text-xs text-gray-400">{timeAgo(comment.created_at)}</span>
             {currentUserId === comment.user_id && onDelete && (
               <button

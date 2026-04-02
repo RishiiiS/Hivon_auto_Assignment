@@ -18,6 +18,11 @@ function stripHtmlToText(html = '') {
     .trim();
 }
 
+function getRelatedUser(users) {
+  if (!users) return null;
+  return Array.isArray(users) ? users[0] || null : users;
+}
+
 export default function PostCard({ post, isFeatured, onDeleted, currentUser }) {
   const router = useRouter();
   const fallbackImage = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2940&auto=format&fit=crop';
@@ -29,7 +34,11 @@ export default function PostCard({ post, isFeatured, onDeleted, currentUser }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
-  const authorId = post.userId ?? post.author_id ?? post.user_id ?? post.users?.id;
+  const relatedUser = getRelatedUser(post.users);
+  const authorName = relatedUser?.name || post.user_name || post.author_name || 'User';
+  const authorAvatarUrl = relatedUser?.avatar_url || post.author_avatar_url || null;
+
+  const authorId = post.userId ?? post.author_id ?? post.user_id ?? relatedUser?.id ?? post.users?.id;
   const isAuthor =
     authorId != null && currentUser?.id != null && String(authorId) === String(currentUser.id);
   const isAdmin = currentUser?.role === 'admin';
@@ -210,16 +219,20 @@ export default function PostCard({ post, isFeatured, onDeleted, currentUser }) {
                {isSummaryExpanded ? 'Show less' : 'Show more'}
              </button>
            )}
-           <div className="flex items-center gap-4 mt-auto">
-             {post.users?.avatar_url ? (
-               <img src={post.users.avatar_url} className="w-6 h-6 rounded-full object-cover shadow-sm border border-gray-100" alt="Author"/>
+	           <div className="flex items-center gap-4 mt-auto">
+	             {authorAvatarUrl ? (
+	               <img
+	                 src={authorAvatarUrl}
+	                 className="w-6 h-6 rounded-full object-cover shadow-sm border border-gray-100"
+	                 alt={authorName}
+	               />
              ) : (
                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center text-white text-[10px] font-bold shadow-sm border border-gray-100">
-                 {(post.users?.name || 'U').charAt(0).toUpperCase()}
+                 {(authorName || 'U').charAt(0).toUpperCase()}
                </div>
              )}
              <span className="text-[15px] font-semibold text-gray-900 flex items-center gap-2">
-                {post.users?.name || 'User'} 
+                {authorName}
                 <span className="text-gray-300 font-normal text-[10px] mx-1">●</span> 
                 <span className="text-gray-500 font-medium text-[13px]">12 min read</span>
              </span>
@@ -315,7 +328,7 @@ export default function PostCard({ post, isFeatured, onDeleted, currentUser }) {
 
         <div className="flex items-center justify-between mt-5 pt-4">
           <span className="text-[18px] md:text-[19px] font-semibold text-gray-900">
-            {post.users?.name || 'User'}
+            {authorName}
           </span>
           <button
             onClick={handleLike}

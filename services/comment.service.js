@@ -33,7 +33,6 @@ export async function createComment({ post_id, user_id, comment_text, parent_com
 }
 
 export async function getCommentsByPostId(post_id) {
-  console.log('Fetching comments for post_id:', post_id);
   const { data, error } = await supabaseStateless
     .from('comments')
     .select('*, users ( name )')
@@ -44,7 +43,29 @@ export async function getCommentsByPostId(post_id) {
     throw new Error('Failed to fetch comments: ' + error.message);
   }
 
-  console.log('Fetched raw comments:', JSON.stringify(data, null, 2));
+  const getUserNameFromJoin = (joined) => {
+    const related = Array.isArray(joined) ? joined[0] : joined;
+    return related?.name || null;
+  };
+
+  const missingUserIds = Array.from(
+    new Set(
+      (data || [])
+        .filter((c) => !getUserNameFromJoin(c?.users))
+        .map((c) => c?.user_id)
+        .filter(Boolean)
+    )
+  );
+
+  let userNameById = new Map();
+  if (missingUserIds.length > 0) {
+    const { data: usersData } = await supabaseStateless
+      .from('users')
+      .select('id, name')
+      .in('id', missingUserIds);
+
+    userNameById = new Map((usersData || []).map((u) => [String(u.id), u.name || null]));
+  }
 
   // Format the nested users structure to a flat 'user_name' to make it easier for the frontend
   return data.map(comment => ({
@@ -54,7 +75,7 @@ export async function getCommentsByPostId(post_id) {
     comment_text: comment.comment_text,
     parent_comment_id: comment.parent_comment_id,
     created_at: comment.created_at,
-    user_name: comment.users?.name,
+    user_name: getUserNameFromJoin(comment.users) || userNameById.get(String(comment.user_id)) || null,
   }));
 }
 

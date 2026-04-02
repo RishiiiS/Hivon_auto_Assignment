@@ -106,7 +106,7 @@ function Comment({ comment, depth = 0, currentUser, postAuthorId, onEdit, onDele
         {/* Header */}
         <div style={{ display:'flex', alignItems:'center', flexWrap:'wrap', gap:8, marginBottom:4 }}>
           <span style={{ fontWeight:600, fontSize:'0.875rem', color:'#111', fontFamily:FONT_SANS }}>
-            {comment.user_name || 'Anonymous'}
+            {comment.user_name || 'User'}
           </span>
           <span style={{ fontSize:'0.78rem', color:'#9ca3af', fontFamily:FONT_SANS }}>
             {timeAgo(comment.created_at)}

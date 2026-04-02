@@ -190,6 +190,8 @@ export default function PostDetailPage() {
   );
 
   const post     = data.post;
+  const relatedUser = Array.isArray(post.users) ? post.users?.[0] : post.users;
+  const authorName = relatedUser?.name || post.user_name || post.author_name || 'User';
   const mins     = readTime(post.body);
   const comments = commentsData?.comments || [];
   const authorId = post.userId ?? post.author_id ?? post.user_id ?? post.users?.id;
@@ -292,13 +294,13 @@ export default function PostDetailPage() {
               color:'#fff', fontWeight:700, fontSize:'1.1rem',
               display:'flex', alignItems:'center', justifyContent:'center',
             }}>
-              {(post.users?.name || 'User').charAt(0).toUpperCase()}
+              {(authorName || 'U').charAt(0).toUpperCase()}
             </div>
             {/* Meta */}
             <div style={{ flex:1, minWidth:0 }}>
               <div className="flex items-center gap-8 flex-wrap mb-2">
                 <span className="font-semibold text-[0.88rem] text-gray-900">
-                  {post.users?.name || 'User'}
+                  {authorName}
                 </span>
               </div>
               <p style={{ fontSize:'0.78rem', color:'#9ca3af', margin:0 }}>
