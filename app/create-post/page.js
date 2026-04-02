@@ -3,6 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Placeholder from '@tiptap/extension-placeholder';
 
 export default function CreatePostPage() {
   const router = useRouter();
@@ -14,6 +17,34 @@ export default function CreatePostPage() {
   const [saveTime, setSaveTime] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Placeholder.configure({
+        placeholder: 'Tell your story...',
+        emptyEditorClass: 'is-editor-empty',
+      }),
+    ],
+    immediatelyRender: false,
+    content: '',
+    onUpdate: ({ editor }) => {
+      setBody(editor.getHTML());
+    },
+    editorProps: {
+      attributes: {
+        class: 'w-full text-xl font-sans text-gray-800 focus:outline-none bg-transparent min-h-[500px] leading-relaxed tracking-wide outline-none prose prose-lg !max-w-none',
+      },
+    },
+  });
+
+  const toggleBold = () => {
+    editor?.chain().focus().toggleBold().run();
+  };
+
+  const toggleItalic = () => {
+    editor?.chain().focus().toggleItalic().run();
+  };
 
   // Simulating auto-save text
   useEffect(() => {
@@ -167,9 +198,9 @@ export default function CreatePostPage() {
               onChange={(e) => setTitle(e.target.value)}
            />
 
-           {/* Inline Toolbar (Insert Block, B, I, link, quote) */}
+           {/* Inline Toolbar (Insert Block, B, I) */}
            <div className="flex items-center gap-6 mb-12 text-gray-900">
-              <button className="flex items-center gap-2 text-xs font-bold text-gray-600 hover:text-gray-900 transition-colors">
+              <button disabled className="flex items-center gap-2 text-xs font-bold text-gray-400 cursor-not-allowed tracking-wide uppercase transition-colors">
                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <circle cx="12" cy="12" r="9" strokeWidth="1.5"/>
                    <path strokeLinecap="round" strokeWidth="1.5" d="M12 8v8m-4-4h8"/>
@@ -180,14 +211,8 @@ export default function CreatePostPage() {
               <div className="w-px h-5 bg-gray-200"></div>
               
               <div className="flex gap-5 items-center">
-                 <button className="font-extrabold text-sm hover:text-blue-600">B</button>
-                 <button className="italic font-serif text-base font-bold hover:text-blue-600">I</button>
-                 <button className="hover:text-blue-600">
-                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-                   </svg>
-                 </button>
-                 <button className="font-serif text-2xl font-black hover:text-blue-600 leading-none pt-2">”</button>
+                 <button onClick={toggleBold} className={`font-extrabold text-sm transition-colors ${editor?.isActive('bold') ? 'text-blue-600' : 'hover:text-blue-600 outline-none'}`}>B</button>
+                 <button onClick={toggleItalic} className={`italic font-serif text-base font-bold transition-colors ${editor?.isActive('italic') ? 'text-blue-600' : 'hover:text-blue-600 outline-none'}`}>I</button>
               </div>
            </div>
 
@@ -215,13 +240,8 @@ export default function CreatePostPage() {
                </button>
              </div>
              
-             {/* Dynamic Textarea */}
-             <textarea 
-                className="w-full text-xl font-sans text-gray-800 placeholder:text-gray-300 focus:outline-none bg-transparent min-h-[500px] resize-none leading-relaxed tracking-wide"
-                placeholder="Tell your story..."
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-             />
+             {/* Dynamic Textarea using TipTap */}
+             <EditorContent editor={editor} />
            </div>
 
          </div>
@@ -246,6 +266,18 @@ export default function CreatePostPage() {
         #global-footer { display: none !important; }
         #global-body { padding-top: 0 !important; background-color: #ffffff !important; }
         #global-main { max-width: 100% !important; padding: 0 !important; }
+
+        .tiptap p.is-editor-empty:first-child::before {
+          color: #d1d5db; /* text-gray-300 */
+          content: attr(data-placeholder);
+          float: left;
+          height: 0;
+          pointer-events: none;
+        }
+        
+        .tiptap p { margin-bottom: 0.75em; }
+        .tiptap strong { font-weight: 800; color: #111827; }
+        .tiptap em { font-style: italic; }
       `}} />
     </div>
   );

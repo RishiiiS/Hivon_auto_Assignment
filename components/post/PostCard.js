@@ -1,4 +1,8 @@
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
 
 export default function PostCard({ post, isFeatured }) {
   const fallbackImage = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2940&auto=format&fit=crop';
@@ -6,6 +10,53 @@ export default function PostCard({ post, isFeatured }) {
   
   // Format dates statically for UI if missing
   const dateStr = post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Oct 24, 2024';
+
+  const [likeCount, setLikeCount] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchLikes() {
+      try {
+        const { count, liked } = await api.get(`/likes/summary?postId=${post.id}`);
+        if (isMounted) {
+          setLikeCount(count || 0);
+          setIsLiked(liked || false);
+        }
+      } catch (err) {
+        console.error('Error fetching likes:', err);
+      }
+    }
+    if (post.id) fetchLikes();
+    return () => { isMounted = false; };
+  }, [post.id]);
+
+  const handleLike = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Optimistic Update
+    const prevLiked = isLiked;
+    const prevCount = likeCount;
+    
+    setIsLiked(!prevLiked);
+    setLikeCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
+
+    try {
+      const response = await api.post('/likes/toggle', { postId: post.id });
+      // Sync strictly to backend reflection
+      if (response && response.message) {
+        setIsLiked(response.liked);
+      } else if (response && response.error) {
+        throw new Error(response.error);
+      }
+    } catch (err) {
+      console.error('Like toggle failed:', err);
+      // Revert optimistic update
+      setIsLiked(prevLiked);
+      setLikeCount(prevCount);
+    }
+  };
 
   if (isFeatured) {
     return (
@@ -28,7 +79,7 @@ export default function PostCard({ post, isFeatured }) {
            <div className="flex items-center gap-3">
              <img src="https://i.pravatar.cc/150?u=a04258114e29026702d" className="w-6 h-6 rounded-full object-cover shadow-sm border border-gray-100" alt="Author"/>
              <span className="text-xs font-extrabold text-gray-900 flex items-center gap-2">
-                User {post.author_id?.substring(0,6) || 'Julian Vance'} 
+                {post.users?.name || 'User'} 
                 <span className="text-gray-300 font-normal text-[8px]">●</span> 
                 <span className="text-gray-500 font-medium">12 min read</span>
              </span>
@@ -63,10 +114,13 @@ export default function PostCard({ post, isFeatured }) {
         </div>
         
         <div className="flex items-center justify-between text-[13px] font-bold text-gray-800 mt-2">
-          <span>{post.author_id?.substring(0,8) || 'Elena Sorvino'}</span>
-          <button className="flex items-center gap-1.5 text-gray-600 transition-colors pointer-events-auto z-30 relative hover:text-red-500 font-semibold tracking-wide">
-             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-             {(Math.random() * 900 + 100).toFixed(0)}
+          <span>{post.users?.name || 'User'}</span>
+          <button 
+             onClick={handleLike}
+             className={`flex items-center gap-1.5 transition-colors pointer-events-auto z-30 relative hover:text-red-500 font-semibold tracking-wide ${isLiked ? 'text-red-500' : 'text-gray-600'}`}
+          >
+             <svg className={`w-4 h-4 transition-transform ${isLiked ? 'scale-110' : ''}`} viewBox="0 0 24 24" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+             {likeCount}
           </button>
         </div>
       </div>

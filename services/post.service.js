@@ -19,12 +19,18 @@ export async function createPost({ title, body, image_url, author_id, summary })
   return data;
 }
 
-export async function getPosts({ limit = 10, offset = 0 }) {
-  const { data, error, count } = await supabase
+export async function getPosts({ limit = 10, offset = 0, authorId = null }) {
+  let query = supabase
     .from('posts')
-    .select('id, title, image_url, summary, author_id', { count: 'exact' })
+    .select('*, users ( name )', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
+
+  if (authorId) {
+    query = query.eq('author_id', authorId);
+  }
+
+  const { data, error, count } = await query;
 
   if (error) {
     throw new Error('Failed to fetch posts: ' + error.message);
@@ -36,7 +42,7 @@ export async function getPosts({ limit = 10, offset = 0 }) {
 export async function getPostById(id) {
   const { data, error } = await supabase
     .from('posts')
-    .select('title, body, image_url, summary, author_id')
+    .select('*, users ( name )')
     .eq('id', id)
     .single();
 
@@ -76,7 +82,7 @@ export async function deletePost(id) {
 export async function searchPosts(query, { limit = 10, offset = 0 }) {
   const { data, error } = await supabase
     .from('posts')
-    .select('id, title, image_url, summary, author_id')
+    .select('*, users ( name )')
     .or(`title.ilike.%${query}%,body.ilike.%${query}%`)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);

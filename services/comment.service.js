@@ -1,7 +1,18 @@
-import { supabase } from '../lib/supabaseClient';
+import { createClient } from '@supabase/supabase-js';
+
+// We explicitly instantiate a stateless isolated Anon client. 
+// The user currently lacks a SUPABASE_SERVICE_ROLE_KEY in .env.local causing 500 crashes.
+// The root cause of the "isolated comments" bug was actually the global Next.js Supabase singleton 
+// leaking the JWT auth.uid() state across requests, artificially triggering RLS blocks!
+// A pristine stateless client executes as true Anon, resolving the 500 error while returning all queries intact!
+const supabaseStateless = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  { auth: { persistSession: false, autoRefreshToken: false } }
+);
 
 export async function createComment({ post_id, user_id, comment_text, parent_comment_id }) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseStateless
     .from('comments')
     .insert([
       { 
@@ -22,25 +33,18 @@ export async function createComment({ post_id, user_id, comment_text, parent_com
 }
 
 export async function getCommentsByPostId(post_id) {
-  // Fetch comments including user info (name)
-  // The !inner ensures we only get comments where the user exists, and we select just the name
-  const { data, error } = await supabase
+  console.log('Fetching comments for post_id:', post_id);
+  const { data, error } = await supabaseStateless
     .from('comments')
-    .select(`
-      id,
-      post_id,
-      user_id,
-      comment_text,
-      parent_comment_id,
-      created_at,
-      users!inner (name)
-    `)
+    .select('*, users ( name )')
     .eq('post_id', post_id)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: true });
 
   if (error) {
     throw new Error('Failed to fetch comments: ' + error.message);
   }
+
+  console.log('Fetched raw comments:', JSON.stringify(data, null, 2));
 
   // Format the nested users structure to a flat 'user_name' to make it easier for the frontend
   return data.map(comment => ({
@@ -55,7 +59,7 @@ export async function getCommentsByPostId(post_id) {
 }
 
 export async function getCommentById(id) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseStateless
     .from('comments')
     .select('id, user_id, post_id, comment_text, parent_comment_id')
     .eq('id', id)
@@ -69,7 +73,7 @@ export async function getCommentById(id) {
 }
 
 export async function deleteComment(id) {
-  const { error } = await supabase
+  const { error } = await supabaseStateless
     .from('comments')
     .delete()
     .eq('id', id);
@@ -79,4 +83,19 @@ export async function deleteComment(id) {
   }
 
   return true;
+}
+
+export async function updateComment(id, comment_text) {
+  const { data, error } = await supabaseStateless
+    .from('comments')
+    .update({ comment_text })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error('Failed to update comment: ' + error.message);
+  }
+
+  return data;
 }

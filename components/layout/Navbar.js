@@ -31,8 +31,11 @@ export default function Navbar() {
         <Link href="/" className="font-serif font-extrabold text-xl text-gray-900 tracking-tight transition-transform hover:scale-[1.01]">The Archive</Link>
       </div>
       
-      <div className="hidden md:flex items-center text-sm font-extrabold h-full pt-[2px] absolute left-1/2 -translate-x-1/2">
+      <div className="hidden md:flex items-center gap-8 text-sm font-extrabold h-full pt-[2px] absolute left-1/2 -translate-x-1/2">
         <Link href="/" className={`h-full flex items-center border-b-[3px] mt-[1px] ${pathname === '/' ? 'border-[#0A4BB5] text-[#0A4BB5]' : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300 transition-colors'}`}>Home</Link>
+        {!loading && user && (
+          <Link href="/profile" className={`h-full flex items-center border-b-[3px] mt-[1px] ${pathname === '/profile' ? 'border-[#0A4BB5] text-[#0A4BB5]' : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300 transition-colors'}`}>Profile</Link>
+        )}
       </div>
 
       <div className="flex items-center gap-5">
@@ -61,9 +64,16 @@ export default function Navbar() {
                {dropdownOpen && (
                  <div className="absolute right-0 mt-3 w-40 bg-white border border-gray-100 shadow-xl rounded-xl overflow-hidden z-50 transform origin-top-right transition-all duration-200 animate-in fade-in slide-in-from-top-2">
                     <div className="px-4 py-3 border-b border-gray-50 flex flex-col gap-0.5">
-                      <span className="text-xs font-bold text-gray-900">My Account</span>
-                      <span className="text-[10px] text-gray-500 truncate">{user.email || "Author"}</span>
+                      <span className="text-xs font-bold text-gray-900 truncate">{user.name || "My Account"}</span>
+                      {user.email && <span className="text-[10px] text-gray-500 truncate">{user.email}</span>}
                     </div>
+                    <Link 
+                      href="/profile" 
+                      onClick={() => setDropdownOpen(false)}
+                      className="w-full text-left px-4 py-3 text-xs font-bold tracking-wide text-gray-700 hover:bg-gray-50 hover:text-[#0A4BB5] flex items-center justify-between transition-colors border-b border-gray-50"
+                    >
+                      My Profile
+                    </Link>
                     <button 
                       onClick={() => {
                         setDropdownOpen(false);

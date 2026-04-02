@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '../../../../../services/auth.service';
-import { getCommentById, deleteComment } from '../../../../../services/comment.service';
+import { getCurrentUser } from '../../../../services/auth.service';
+import { getCommentById, deleteComment, updateComment } from '../../../../services/comment.service';
 
 export async function DELETE(request, context) {
   try {
@@ -44,5 +44,59 @@ export async function DELETE(request, context) {
   } catch (error) {
     console.error('Delete comment error:', error);
     return NextResponse.json({ error: error.message || 'Failed to delete comment' }, { status: 500 });
+  }
+}
+
+export async function PUT(request, context) {
+  try {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized: Missing token' }, { status: 401 });
+    }
+    const token = authHeader.split(' ')[1];
+    
+    let user;
+    try {
+      user = await getCurrentUser(token);
+    } catch (err) {
+      return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+
+    if (!id) {
+       return NextResponse.json({ error: 'Comment ID is required' }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const { comment_text } = body;
+
+    if (!comment_text || !comment_text.trim()) {
+       return NextResponse.json({ error: 'Comment text is required' }, { status: 400 });
+    }
+
+    let comment;
+    try {
+      comment = await getCommentById(id);
+    } catch (err) {
+      return NextResponse.json({ error: 'Comment not found' }, { status: 404 });
+    }
+
+    // Role Matrix Validation
+    // Users can only edit if they are the original author or an admin
+    const isAuthor = comment.user_id === user.id;
+    const isAdmin = user.role === 'admin';
+
+    if (!isAuthor && !isAdmin) {
+      return NextResponse.json({ error: 'Forbidden: You do not have permission to edit this comment' }, { status: 403 });
+    }
+
+    const updated = await updateComment(id, comment_text.trim());
+
+    return NextResponse.json({ message: 'Comment updated successfully', comment: updated }, { status: 200 });
+
+  } catch (error) {
+    console.error('Update comment error:', error);
+    return NextResponse.json({ error: error.message || 'Failed to update comment' }, { status: 500 });
   }
 }

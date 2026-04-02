@@ -3,7 +3,8 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useFetch } from '@/hooks/useFetch';
 import CommentSection from '@/components/comment/CommentSection';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { api } from '@/lib/api';
 
 // ---- SVG Icons ----
 const ArrowLeftIcon = () => (
@@ -99,6 +100,46 @@ export default function PostDetailPage() {
   const router  = useRouter();
   const { data, loading, error } = useFetch(`/posts/${id}`);
   const { data: commentsData }   = useFetch(`/comments/list?post_id=${id}`);
+
+  const [likeCount, setLikeCount] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchLikes() {
+      try {
+        const { count, liked } = await api.get(`/likes/summary?postId=${id}`);
+        if (isMounted) {
+          setLikeCount(count || 0);
+          setIsLiked(liked || false);
+        }
+      } catch (err) {
+        console.error('Error fetching likes:', err);
+      }
+    }
+    if (id) fetchLikes();
+    return () => { isMounted = false; };
+  }, [id]);
+
+  const handleLike = async () => {
+    const prevLiked = isLiked;
+    const prevCount = likeCount;
+    setIsLiked(!prevLiked);
+    setLikeCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
+
+    try {
+      const response = await api.post('/likes/toggle', { postId: id });
+      if (response && response.message) {
+        setIsLiked(response.liked);
+      } else if (response && response.error) {
+        throw new Error(response.error);
+      }
+    } catch (err) {
+      console.error('Like toggle failed:', err);
+      setIsLiked(prevLiked);
+      setLikeCount(prevCount);
+    }
+  };
 
   // Hide global navbar + reset main layout for this page
   useEffect(() => {
@@ -218,13 +259,13 @@ export default function PostDetailPage() {
               color:'#fff', fontWeight:700, fontSize:'1.1rem',
               display:'flex', alignItems:'center', justifyContent:'center',
             }}>
-              {(post.author_name || 'A').charAt(0).toUpperCase()}
+              {(post.users?.name || 'User').charAt(0).toUpperCase()}
             </div>
             {/* Meta */}
             <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap', marginBottom:2 }}>
-                <span style={{ fontWeight:600, fontSize:'0.88rem', color:'#111' }}>
-                  {post.author_name || `Author ${post.author_id?.substring(0,8)}`}
+              <div className="flex items-center gap-8 flex-wrap mb-2">
+                <span className="font-semibold text-[0.88rem] text-gray-900">
+                  {post.users?.name || 'User'}
                 </span>
                 <span style={{ fontSize:'0.78rem', fontWeight:600, color:'#2563eb', cursor:'pointer' }}>Follow</span>
               </div>
@@ -304,14 +345,19 @@ export default function PostDetailPage() {
             padding:'14px 0', marginBottom:52,
           }}>
             <div style={{ display:'flex', alignItems:'center', gap:20 }}>
-              {[
-                { icon:<ThumbUpIcon />, val: post.likes_count || 0 },
-                { icon:<ChatIcon />,    val: comments.length },
-              ].map(({ icon, val }, i) => (
-                <button key={i} style={{ display:'flex', alignItems:'center', gap:5, background:'none', border:'none', cursor:'pointer', color:'#6b7280', fontSize:'0.85rem', padding:0 }}>
-                  {icon}<span>{val}</span>
-                </button>
-              ))}
+              <button 
+                onClick={handleLike}
+                style={{ display:'flex', alignItems:'center', gap:5, background:'none', border:'none', cursor:'pointer', color: isLiked ? '#ef4444' : '#6b7280', fontSize:'0.85rem', padding:0, transition: 'color 0.2s' }}
+              >
+                <div style={{ transform: isLiked ? 'scale(1.1)' : 'none', transition: 'transform 0.2s' }}>
+                  <ThumbUpIcon fill={isLiked ? "currentColor" : "none"} />
+                </div>
+                <span style={{ fontWeight: isLiked ? 600 : 400 }}>{likeCount}</span>
+              </button>
+              
+              <button style={{ display:'flex', alignItems:'center', gap:5, background:'none', border:'none', cursor:'pointer', color:'#6b7280', fontSize:'0.85rem', padding:0 }}>
+                <ChatIcon /><span>{comments.length}</span>
+              </button>
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:16 }}>
               {[<BookmarkIcon key="b"/>, <ShareIcon key="s"/>].map((icon, i) => (
@@ -325,7 +371,7 @@ export default function PostDetailPage() {
             <h2 style={{ fontFamily:FONT_SERIF, fontWeight:700, fontSize:'1.25rem', color:'#111', marginBottom:24, marginTop:0 }}>
               Comments
             </h2>
-            <CommentSection postId={id} comments={comments} />
+            <CommentSection postId={id} comments={comments} postAuthorId={post?.author_id} />
           </section>
 
           {/* ---- Footer ---- */}
