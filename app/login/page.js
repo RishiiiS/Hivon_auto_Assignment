@@ -153,10 +153,10 @@ export default function LoginPage() {
 
       {/* Injecting CSS to ensure font-serif maps cleanly and hiding Navbar */}
       <style dangerouslySetInnerHTML={{__html: `
-        /* Hide Navbar for login page */
-        nav { display: none !important; }
-        main { padding-top: 0 !important; max-width: 100% !important; padding: 0 !important; }
-        body { background-color: #FCFBFA !important; }
+        #global-navbar { display: none !important; }
+        #global-footer { display: none !important; }
+        #global-body { padding-top: 0 !important; background-color: #FCFBFA !important; }
+        #global-main { max-width: 100% !important; padding: 0 !important; }
       `}} />
     </div>
   );

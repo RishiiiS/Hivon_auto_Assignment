@@ -2,24 +2,24 @@
 
 import { useFetch } from '@/hooks/useFetch';
 import PostList from '@/components/post/PostList';
+import Link from 'next/link';
 
 export default function Home() {
   const { data, loading, error } = useFetch('/posts/list');
 
   return (
-    <div className="space-y-6 flex flex-col items-center justify-center py-10 w-full max-w-4xl mx-auto">
-      <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight text-center">
-        Latest Posts
-      </h1>
+    <div className="flex flex-col items-center justify-center w-full max-w-5xl mx-auto pb-10 bg-[#FCFBFA]">
       
-      {loading && <p className="text-gray-500 animate-pulse">Loading amazing content...</p>}
-      {error && <p className="text-red-500 bg-red-50 p-4 rounded-md w-full text-center border border-red-200">{error}</p>}
+      {loading && <p className="text-gray-500 animate-pulse py-32 font-medium">Curating the archive...</p>}
+      
+      {error && <p className="text-red-500 bg-red-50 p-4 rounded-md w-full text-center border border-red-200 mt-10">{error}</p>}
       
       {data?.posts && (
-        <div className="w-full">
+        <div className="w-full mt-8">
           <PostList posts={data.posts} />
         </div>
       )}
+
     </div>
   );
 }
