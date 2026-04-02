@@ -1,10 +1,10 @@
-import { supabase } from '../lib/supabaseClient';
+import { supabaseAnon } from '../lib/supabaseAnonClient';
 
 export async function createPost({ title, body, image_url, author_id, summary }) {
   // We use the generic server client because RLS for inserting posts usually checks author_id, 
   // or we could use the scoped client. The requirement requested: "Extract user from token... Do NOT trust frontend for author_id".
   // Assuming the user's role allows inserting, and we supply the author_id fetched securely.
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAnon
     .from('posts')
     .insert([
       { title, body, image_url, author_id, summary }
@@ -36,7 +36,7 @@ async function hydrateAuthorsForPosts(posts = []) {
 
   if (missingAuthorIds.length === 0) return posts;
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAnon
     .from('users')
     .select('id, name, avatar_url')
     .in('id', missingAuthorIds);
@@ -61,7 +61,7 @@ async function hydrateAuthorsForPosts(posts = []) {
 
 export async function getPosts({ limit = 10, offset = 0, authorId = null }) {
   const buildQuery = (select) => {
-    let query = supabase
+    let query = supabaseAnon
       .from('posts')
       .select(select, { count: 'exact' })
       .order('created_at', { ascending: false })
@@ -94,7 +94,7 @@ export async function getPosts({ limit = 10, offset = 0, authorId = null }) {
 }
 
 export async function getPostById(id) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAnon
     .from('posts')
     .select('*, users ( name )')
     .eq('id', id)
@@ -107,7 +107,7 @@ export async function getPostById(id) {
   const joinedName = getUserNameFromJoin(data?.users);
   if (joinedName) return { ...data, author_name: joinedName };
 
-  const { data: authorRow } = await supabase
+  const { data: authorRow } = await supabaseAnon
     .from('users')
     .select('id, name, avatar_url')
     .eq('id', data.author_id)
@@ -123,7 +123,7 @@ export async function getPostById(id) {
 }
 
 export async function updatePost(id, data) {
-  const { error } = await supabase
+  const { error } = await supabaseAnon
     .from('posts')
     .update(data)
     .eq('id', id);
@@ -136,7 +136,7 @@ export async function updatePost(id, data) {
 }
 
 export async function deletePost(id) {
-  const { error } = await supabase
+  const { error } = await supabaseAnon
     .from('posts')
     .delete()
     .eq('id', id);
@@ -149,7 +149,7 @@ export async function deletePost(id) {
 }
 
 export async function searchPosts(query, { limit = 10, offset = 0 }) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAnon
     .from('posts')
     .select('*, users ( name )')
     .or(`title.ilike.%${query}%,body.ilike.%${query}%`)

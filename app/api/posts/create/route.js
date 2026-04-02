@@ -1,21 +1,14 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '../../../../services/auth.service';
+import { getRequestUser } from '../../../../services/requestUser.service';
 import { generateSummary } from '../../../../services/ai.service';
 import { createPost } from '../../../../services/post.service';
 
 export async function POST(request) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized: Missing token' }, { status: 401 });
-    }
-    
-    const token = authHeader.split(' ')[1];
-    
     // 1. Authenticate user and get user.id (Security: Always extract user from token)
     let user;
     try {
-      user = await getCurrentUser(token);
+      user = await getRequestUser(request);
     } catch (err) {
       return NextResponse.json({ error: 'Unauthorized: Invalid or expired token' }, { status: 401 });
     }

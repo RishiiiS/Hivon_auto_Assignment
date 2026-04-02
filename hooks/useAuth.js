@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getToken, removeToken } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { supabase } from '@/lib/supabaseClient';
 
 export function useAuth() {
   const [user, setUser] = useState(null);
@@ -8,23 +7,27 @@ export function useAuth() {
 
   const validateSession = useCallback(async () => {
     setLoading(true);
-    const token = getToken();
-    if (!token) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-
     try {
-      const res = await api.get('/auth/me');
-      if (res?.error) {
-        removeToken();
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      if (authError || !authUser) {
         setUser(null);
         return;
       }
-      setUser(res.user || null);
+
+      const { data: profile } = await supabase
+        .from('users')
+        .select('id, name, email, role, avatar_url')
+        .eq('id', authUser.id)
+        .maybeSingle();
+
+      setUser({
+        id: authUser.id,
+        name: profile?.name || null,
+        email: profile?.email || authUser.email || null,
+        role: profile?.role || 'user',
+        avatar_url: profile?.avatar_url || null,
+      });
     } catch (e) {
-      removeToken();
       setUser(null);
     } finally {
       setLoading(false);
@@ -33,29 +36,17 @@ export function useAuth() {
 
   useEffect(() => {
     validateSession();
-
-    function handleAuthChanged() {
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
       validateSession();
-    }
+    });
 
-    function handleStorage(event) {
-      if (event.key === 'auth_token') {
-        validateSession();
-      }
-    }
-
-    window.addEventListener('auth:changed', handleAuthChanged);
-    window.addEventListener('storage', handleStorage);
     return () => {
-      window.removeEventListener('auth:changed', handleAuthChanged);
-      window.removeEventListener('storage', handleStorage);
+      listener?.subscription?.unsubscribe();
     };
   }, [validateSession]);
 
-  const logout = () => {
-    // Call backend API if needed, then remove token locally
-    api.post('/auth/logout', {}).catch(console.error);
-    removeToken();
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
   };
 

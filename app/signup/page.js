@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -15,9 +15,33 @@ export default function SignupPage() {
   const handleSignup = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     try {
-      await api.post('/auth/signup', { name, email, password });
-      router.push('/login');
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (authError) throw new Error(authError.message);
+      if (!data?.user) throw new Error('Signup failed.');
+
+      // Store profile in custom `users` table (used across the app)
+      // Works when the session is available immediately (no email confirmation flow).
+      const { error: profileError } = await supabase.from('users').insert([
+        {
+          id: data.user.id,
+          name,
+          email,
+          role: 'user',
+        },
+      ]);
+
+      if (profileError) {
+        // Avoid breaking signup if profile insert is blocked by RLS; user can still login.
+        console.warn('Failed to create user profile row:', profileError.message);
+      }
+
+      router.push('/');
     } catch (err) {
       setError(err.message);
     } finally {

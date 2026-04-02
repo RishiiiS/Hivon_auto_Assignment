@@ -1,17 +1,20 @@
 import { NextResponse } from 'next/server';
 import { logoutUser } from '../../../../services/auth.service';
+import { createSupabaseServerClient } from '@/lib/supabaseServer';
 
 export async function POST(request) {
   try {
-    // We expect the frontend to pass the JWT in the Authorization header
     const authHeader = request.headers.get('Authorization');
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing or invalid token' }, { status: 401 });
+    // Back-compat: Authorization header logout
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      await logoutUser(token);
+    } else {
+      // Preferred: cookie-based logout
+      const supabase = createSupabaseServerClient();
+      await supabase.auth.signOut();
     }
-    
-    const token = authHeader.split(' ')[1];
-    await logoutUser(token);
 
     return NextResponse.json({ message: 'Logged out successfully' }, { status: 200 });
 

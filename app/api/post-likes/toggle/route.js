@@ -1,21 +1,15 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '../../../../services/auth.service';
+import { getRequestUser } from '../../../../services/requestUser.service';
 import { getPostById } from '../../../../services/post.service';
 import { findExistingLike, createLike, deleteLike } from '../../../../services/postLike.service';
 
 export async function POST(request) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized: Missing token' }, { status: 401 });
-    }
-    const token = authHeader.split(' ')[1];
-    
     // 1. Extract and validate JWT token
     // 2. Get logged-in user securely
     let user;
     try {
-      user = await getCurrentUser(token);
+      user = await getRequestUser(request);
     } catch (err) {
       return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
     }

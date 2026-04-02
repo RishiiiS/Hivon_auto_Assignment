@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '../../../../services/auth.service';
 import { getLikeSummaries } from '../../../../services/postLike.service';
+import { createSupabaseServerClient } from '@/lib/supabaseServer';
 
 export async function GET(request) {
   try {
@@ -34,6 +35,14 @@ export async function GET(request) {
       } catch (e) {
         // Ignore invalid tokens for public read access
       }
+    } else {
+      try {
+        const supabase = createSupabaseServerClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) userId = user.id;
+      } catch (e) {
+        // Ignore
+      }
     }
 
     const { countsByPostId, likedByPostId } = await getLikeSummaries(postIds, userId);
@@ -49,4 +58,3 @@ export async function GET(request) {
     );
   }
 }
-

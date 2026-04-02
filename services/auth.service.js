@@ -1,5 +1,5 @@
-import { supabase } from '../lib/supabaseClient';
 import { createClient } from '@supabase/supabase-js';
+import { supabaseAnon } from '../lib/supabaseAnonClient';
 
 /**
  * Creates a scoped Supabase client with the user's JWT token.
@@ -7,7 +7,7 @@ import { createClient } from '@supabase/supabase-js';
  * without polluting a global server instance.
  */
 function getAuthClient(token) {
-  if (!token) return supabase;
+  if (!token) return supabaseAnon;
   
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -21,7 +21,7 @@ function getAuthClient(token) {
 
 export async function signupUser({ name, email, password }) {
   // 1. Create a new user using Supabase Auth
-  const { data: authData, error: authError } = await supabase.auth.signUp({
+  const { data: authData, error: authError } = await supabaseAnon.auth.signUp({
     email,
     password,
   });
@@ -62,7 +62,7 @@ export async function signupUser({ name, email, password }) {
 }
 
 export async function loginUser({ email, password }) {
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabaseAnon.auth.signInWithPassword({
     email,
     password,
   });
@@ -90,16 +90,16 @@ export async function logoutUser(token) {
 export async function getCurrentUser(token) {
   // 4. Retrieve current session & fetch user data
   // We use getUser() to validate the JWT directly
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  const { data: { user }, error: authError } = await supabaseAnon.auth.getUser(token);
   
   if (authError || !user) {
     throw new Error(authError?.message || 'Invalid or expired token');
   }
 
   // Fetch from the custom "users" table
-  const { data: dbUser, error: dbError } = await supabase
+  const { data: dbUser, error: dbError } = await supabaseAnon
     .from('users')
-    .select('id, name, email, role')
+    .select('id, name, email, role, avatar_url')
     .eq('id', user.id)
     .single();
 
@@ -107,13 +107,12 @@ export async function getCurrentUser(token) {
     throw new Error('User profile not found: ' + dbError.message);
   }
 
-  // Also manually map avatar_url if it exists in the row
   return { ...dbUser, avatar_url: dbUser.avatar_url || null };
 }
 
 export async function updateUserProfile(token, updates) {
   // Validate caller identity
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  const { data: { user }, error: authError } = await supabaseAnon.auth.getUser(token);
   if (authError || !user) throw new Error('Unauthorized');
 
   // Must run on secured client

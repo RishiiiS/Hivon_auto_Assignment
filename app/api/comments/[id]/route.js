@@ -1,19 +1,13 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '../../../../services/auth.service';
+import { getRequestUser } from '../../../../services/requestUser.service';
 import { getCommentById, deleteComment, updateComment } from '../../../../services/comment.service';
 
 export async function DELETE(request, context) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized: Missing token' }, { status: 401 });
-    }
-    const token = authHeader.split(' ')[1];
-    
     // Identify requesting user securely via JWT
     let user;
     try {
-      user = await getCurrentUser(token);
+      user = await getRequestUser(request);
     } catch (err) {
       return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
     }
@@ -49,15 +43,9 @@ export async function DELETE(request, context) {
 
 export async function PUT(request, context) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized: Missing token' }, { status: 401 });
-    }
-    const token = authHeader.split(' ')[1];
-    
     let user;
     try {
-      user = await getCurrentUser(token);
+      user = await getRequestUser(request);
     } catch (err) {
       return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
     }

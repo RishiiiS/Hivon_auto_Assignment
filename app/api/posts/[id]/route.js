@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPostById, updatePost, deletePost } from '../../../../services/post.service';
-import { getCurrentUser } from '../../../../services/auth.service';
+import { getRequestUser } from '../../../../services/requestUser.service';
 
 export async function GET(request, context) {
   try {
@@ -28,16 +28,10 @@ export async function GET(request, context) {
 
 export async function PUT(request, context) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized: Missing token' }, { status: 401 });
-    }
-    const token = authHeader.split(' ')[1];
-    
     // 2. Extract user & Authenticate
     let user;
     try {
-      user = await getCurrentUser(token);
+      user = await getRequestUser(request);
     } catch (err) {
       return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
     }
@@ -81,16 +75,10 @@ export async function PUT(request, context) {
 
 export async function DELETE(request, context) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized: Missing token' }, { status: 401 });
-    }
-    const token = authHeader.split(' ')[1];
-    
     // Authenticate
     let user;
     try {
-      user = await getCurrentUser(token);
+      user = await getRequestUser(request);
     } catch (err) {
       return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
     }

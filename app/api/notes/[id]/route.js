@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { getCurrentUserAdmin } from '../../../../services/authAdmin.service';
 import {
   deleteNoteForUser,
   getNoteByIdForUser,
   updateNoteForUser,
 } from '../../../../services/note.service';
-import { getCurrentUser } from '../../../../services/auth.service';
+import { getRequestUser } from '../../../../services/requestUser.service';
+import { createSupabaseServerClient } from '@/lib/supabaseServer';
 
 function getBearerToken(request) {
   const authHeader = request.headers.get('Authorization');
@@ -14,32 +14,33 @@ function getBearerToken(request) {
   return authHeader.split(' ')[1];
 }
 
-function getScopedSupabase(token) {
+function getSupabaseForRequest(token) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anon) throw new Error('Supabase not configured');
-  return createClient(url, anon, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  if (token) {
+    return createClient(url, anon, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  }
+  return createSupabaseServerClient();
 }
 
 export async function GET(request, context) {
   try {
     const token = getBearerToken(request);
-    if (!token) return NextResponse.json({ error: 'Unauthorized: Missing token' }, { status: 401 });
+    const user = await getRequestUser(request);
 
     const { id } = await context.params;
     if (!id) return NextResponse.json({ error: 'Note ID is required' }, { status: 400 });
 
     try {
-      const user = await getCurrentUserAdmin(token);
       const note = await getNoteByIdForUser(user.id, id);
       return NextResponse.json({ note }, { status: 200 });
     } catch (e) {
       if (e?.message !== 'Supabase admin not configured') throw e;
-      const user = await getCurrentUser(token);
-      const supabase = getScopedSupabase(token);
+      const supabase = getSupabaseForRequest(token);
       const { data, error } = await supabase
         .from('notes')
         .select('id, user_id, title, content, created_at, updated_at')
@@ -62,7 +63,7 @@ export async function GET(request, context) {
 export async function PUT(request, context) {
   try {
     const token = getBearerToken(request);
-    if (!token) return NextResponse.json({ error: 'Unauthorized: Missing token' }, { status: 401 });
+    const user = await getRequestUser(request);
 
     const { id } = await context.params;
     if (!id) return NextResponse.json({ error: 'Note ID is required' }, { status: 400 });
@@ -71,13 +72,11 @@ export async function PUT(request, context) {
     const { title, content } = body || {};
 
     try {
-      const user = await getCurrentUserAdmin(token);
       const note = await updateNoteForUser(user.id, id, { title, content });
       return NextResponse.json({ note }, { status: 200 });
     } catch (e) {
       if (e?.message !== 'Supabase admin not configured') throw e;
-      const user = await getCurrentUser(token);
-      const supabase = getScopedSupabase(token);
+      const supabase = getSupabaseForRequest(token);
       const updateData = {};
       if (title !== undefined) updateData.title = title;
       if (content !== undefined) updateData.content = content;
@@ -104,19 +103,17 @@ export async function PUT(request, context) {
 export async function DELETE(request, context) {
   try {
     const token = getBearerToken(request);
-    if (!token) return NextResponse.json({ error: 'Unauthorized: Missing token' }, { status: 401 });
+    const user = await getRequestUser(request);
 
     const { id } = await context.params;
     if (!id) return NextResponse.json({ error: 'Note ID is required' }, { status: 400 });
 
     try {
-      const user = await getCurrentUserAdmin(token);
       await deleteNoteForUser(user.id, id);
       return NextResponse.json({ message: 'Note deleted successfully' }, { status: 200 });
     } catch (e) {
       if (e?.message !== 'Supabase admin not configured') throw e;
-      const user = await getCurrentUser(token);
-      const supabase = getScopedSupabase(token);
+      const supabase = getSupabaseForRequest(token);
       const { error } = await supabase.from('notes').delete().eq('id', id).eq('user_id', user.id);
       if (error) throw new Error('Failed to delete note: ' + error.message);
       return NextResponse.json({ message: 'Note deleted successfully' }, { status: 200 });

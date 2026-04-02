@@ -77,10 +77,8 @@ export default function EditPostPage() {
     formData.append('file', file);
 
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
       const res = await fetch('/api/upload', {
         method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
       });
 

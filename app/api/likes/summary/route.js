@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getLikeSummary } from '../../../../services/postLike.service';
 import { getCurrentUser } from '../../../../services/auth.service';
+import { createSupabaseServerClient } from '@/lib/supabaseServer';
 
 export async function GET(request) {
   try {
@@ -21,6 +22,15 @@ export async function GET(request) {
         if (user) userId = user.id;
       } catch (e) {
         // Ignore invalid tokens for public read access
+      }
+    } else {
+      // Cookie-based auth (optional)
+      try {
+        const supabase = createSupabaseServerClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) userId = user.id;
+      } catch (e) {
+        // Ignore
       }
     }
 
