@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 
@@ -12,6 +12,8 @@ export default function CreatePostPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [saveTime, setSaveTime] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Simulating auto-save text
   useEffect(() => {
@@ -24,8 +26,45 @@ export default function CreatePostPage() {
   }, [title, body]);
 
   const handleImageClick = () => {
-    const url = window.prompt("Enter cover image URL since we don't have an S3 upload endpoint:");
-    if (url) setImageUrl(url);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file.');
+      return;
+    }
+
+    setUploadingImage(true);
+    setError('');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        body: formData,
+      });
+
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Upload failed');
+      }
+
+      setImageUrl(data.url);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
   };
 
   const handlePublish = async (e) => {
@@ -89,7 +128,20 @@ export default function CreatePostPage() {
               onClick={handleImageClick}
               className="w-full h-72 md:h-96 bg-[#FAFAFA] border border-dashed border-gray-200 rounded-sm flex flex-col items-center justify-center mb-12 group hover:bg-gray-50 cursor-pointer transition-colors relative overflow-hidden"
            >
-             {imageUrl ? (
+             <input 
+               type="file" 
+               accept="image/*" 
+               className="hidden" 
+               ref={fileInputRef} 
+               onChange={handleFileChange}
+             />
+             
+             {uploadingImage ? (
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full border-4 border-gray-200 border-t-[#0A4BB5] animate-spin mb-3 shadow-sm"></div>
+                  <span className="text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-1">Uploading...</span>
+                </div>
+             ) : imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={imageUrl} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
              ) : (
