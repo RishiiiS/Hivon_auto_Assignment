@@ -6,9 +6,11 @@ import { api } from '@/lib/api';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function CreatePostPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -137,10 +139,24 @@ export default function CreatePostPage() {
           >
             Publish
           </button>
-          {/* Avatar (fake image for demo since it wasn't requested from DB) */}
-          <div className="w-8 h-8 rounded-md overflow-hidden shadow-sm border border-gray-200 cursor-pointer">
-            <img src="https://i.pravatar.cc/150?u=a04258114e29026702d" className="w-full h-full object-cover" alt="Avatar"/>
-          </div>
+          {/* Avatar */}
+          <button
+            type="button"
+            onClick={() => router.push(user ? '/profile' : '/login')}
+            className="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden shadow-sm border border-gray-200 cursor-pointer hover:border-[#0A4BB5] transition-all flex items-center justify-center bg-white"
+            aria-label="Profile"
+          >
+            {authLoading ? (
+              <div className="w-full h-full bg-gray-100 animate-pulse" />
+            ) : user?.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={user.avatar_url} className="w-full h-full object-cover" alt="Avatar" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center text-white font-bold text-sm">
+                {(user?.name || 'U').charAt(0).toUpperCase()}
+              </div>
+            )}
+          </button>
         </div>
       </nav>
 
