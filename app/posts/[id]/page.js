@@ -300,7 +300,6 @@ export default function PostDetailPage() {
                 <span className="font-semibold text-[0.88rem] text-gray-900">
                   {post.users?.name || 'User'}
                 </span>
-                <span style={{ fontSize:'0.78rem', fontWeight:600, color:'#2563eb', cursor:'pointer' }}>Follow</span>
               </div>
               <p style={{ fontSize:'0.78rem', color:'#9ca3af', margin:0 }}>
                 {mins} min read &nbsp;·&nbsp; {formatDate(post.created_at)}
@@ -368,7 +367,7 @@ export default function PostDetailPage() {
 
           {/* AI Summary */}
           {post.summary && (
-            <div style={{
+            <div id="post-summary" style={{
               borderLeft:'4px solid #2563eb', background:'#eff6ff', borderRadius:'0 6px 6px 0',
               padding:'14px 18px', margin:'28px 0',
             }}>

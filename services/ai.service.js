@@ -25,8 +25,9 @@ export async function generateSummary(text) {
   }
 
   try {
-    // gemini-1.5-flash is currently the standard fast model
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // Default to Gemini 2.5; allow override via env if needed
+    const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    const model = genAI.getGenerativeModel({ model: modelName });
     
     const prompt = `Please provide a concise summary of the following text. Limit your response to approximately 200 words:\n\n${text}`;
     

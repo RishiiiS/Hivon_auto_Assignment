@@ -17,6 +17,14 @@ const UserIcon = ({ active }) => (
   </svg>
 );
 
+const InfoIcon = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 16v-4" />
+    <path d="M12 8h.01" />
+  </svg>
+);
+
 export default function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
@@ -30,6 +38,14 @@ export default function Sidebar() {
         >
           <HomeIcon active={pathname === '/'} />
           <span className="text-[15px] tracking-wide">Home</span>
+        </Link>
+
+        <Link
+          href="/about"
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${pathname === '/about' ? 'bg-[#FCFBFA] shadow-sm font-bold text-[#0A4BB5] border border-gray-100' : 'text-gray-600 hover:bg-gray-100 font-semibold border border-transparent'}`}
+        >
+          <InfoIcon active={pathname === '/about'} />
+          <span className="text-[15px] tracking-wide">About</span>
         </Link>
         
         {user && (
