@@ -497,58 +497,7 @@ export default function PostDetailPage() {
                 <ChatIcon /><span>{comments.length}</span>
               </button>
             </div>
-            <div style={{ display:'flex', alignItems:'center', gap:16, position:'relative' }}>
-              <div style={{ position:'relative' }}>
-                <button
-                  onClick={() => setShareOpen(v => !v)}
-                  style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280', display:'flex', padding:0 }}
-                  aria-label="Share"
-                >
-                  <ShareIcon />
-                </button>
-                {shareOpen && (
-                  <div
-                    style={{
-                      position:'absolute', right:0, bottom:'calc(100% + 10px)',
-                      background:'#fff', border:'1px solid #e5e7eb',
-                      borderRadius:12, boxShadow:'0 12px 32px rgba(0,0,0,0.12)',
-                      padding:'8px 0', minWidth:200, zIndex:100,
-                    }}
-                  >
-                    <div style={{ padding:'8px 14px 6px', fontSize:'0.7rem', fontWeight:700, letterSpacing:'0.1em', color:'#9ca3af', textTransform:'uppercase' }}>Share via</div>
-                    {[
-                      { label:'Twitter / X',  href:`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`, color:'#000' },
-                      { label:'LinkedIn',     href:`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`, color:'#0a66c2' },
-                      { label:'Facebook',     href:`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, color:'#1877f2' },
-                      { label:'WhatsApp',     href:`https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`, color:'#25d366' },
-                    ].map(({ label, href, color }) => (
-                      <a
-                        key={label}
-                        href={href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => setShareOpen(false)}
-                        style={{ display:'block', padding:'9px 14px', fontSize:'0.85rem', fontWeight:500, color:'#111', textDecoration:'none', transition:'background 0.15s' }}
-                        onMouseEnter={e => e.currentTarget.style.background='#f9fafb'}
-                        onMouseLeave={e => e.currentTarget.style.background='transparent'}
-                      >
-                        <span style={{ display:'inline-block', width:10, height:10, borderRadius:'50%', background:color, marginRight:8 }} />
-                        {label}
-                      </a>
-                    ))}
-                    <div style={{ borderTop:'1px solid #f3f4f6', margin:'4px 0' }} />
-                    <button
-                      onClick={handleCopyLink}
-                      style={{ display:'block', width:'100%', padding:'9px 14px', fontSize:'0.85rem', fontWeight:500, color: copyDone ? '#16a34a' : '#111', textAlign:'left', background:'none', border:'none', cursor:'pointer', transition:'background 0.15s' }}
-                      onMouseEnter={e => e.currentTarget.style.background='#f9fafb'}
-                      onMouseLeave={e => e.currentTarget.style.background='transparent'}
-                    >
-                      {copyDone ? '✓ Link copied!' : '🔗 Copy link'}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+
           </div>
 
           {/* ---- Comments ---- */}
