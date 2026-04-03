@@ -1,9 +1,9 @@
-import { getSupabaseAdmin } from '../lib/supabaseAdminClient';
+import { createSupabaseServerClient } from '../lib/supabaseServer';
 
 export async function getNotesByUser(userId) {
-  const supabaseAdmin = getSupabaseAdmin();
+  const supabase = await createSupabaseServerClient();
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('notes')
     .select('id, user_id, title, content, created_at, updated_at')
     .eq('user_id', userId)
@@ -14,9 +14,9 @@ export async function getNotesByUser(userId) {
 }
 
 export async function createNoteForUser(userId, { title = '', content = '' }) {
-  const supabaseAdmin = getSupabaseAdmin();
+  const supabase = await createSupabaseServerClient();
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('notes')
     .insert([{ user_id: userId, title, content }])
     .select('id, user_id, title, content, created_at, updated_at')
@@ -27,9 +27,9 @@ export async function createNoteForUser(userId, { title = '', content = '' }) {
 }
 
 export async function getNoteByIdForUser(userId, noteId) {
-  const supabaseAdmin = getSupabaseAdmin();
+  const supabase = await createSupabaseServerClient();
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('notes')
     .select('id, user_id, title, content, created_at, updated_at')
     .eq('id', noteId)
@@ -41,13 +41,13 @@ export async function getNoteByIdForUser(userId, noteId) {
 }
 
 export async function updateNoteForUser(userId, noteId, { title, content }) {
-  const supabaseAdmin = getSupabaseAdmin();
+  const supabase = await createSupabaseServerClient();
 
   const updateData = {};
   if (title !== undefined) updateData.title = title;
   if (content !== undefined) updateData.content = content;
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('notes')
     .update(updateData)
     .eq('id', noteId)
@@ -60,9 +60,9 @@ export async function updateNoteForUser(userId, noteId, { title, content }) {
 }
 
 export async function deleteNoteForUser(userId, noteId) {
-  const supabaseAdmin = getSupabaseAdmin();
+  const supabase = await createSupabaseServerClient();
 
-  const { error } = await supabaseAdmin
+  const { error } = await supabase
     .from('notes')
     .delete()
     .eq('id', noteId)
