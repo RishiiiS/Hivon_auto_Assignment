@@ -1,6 +1,8 @@
 #  The Archive
 
-> A editorial blogging platform built with **Next.js 16**, **Supabase**, **Cloudinary**, and **Google Gemini AI**. Write, publish, comment, like, and take private notes — all in one place.
+[📺 Watch the Live Demo](https://drive.google.com/file/d/1V0WBVzaFuUJ1KrvUxz5wEdNrXbrwMmdW/view?usp=sharing)
+
+> A premium editorial blogging platform built with **Next.js 16**, **Supabase**, **Cloudinary**, and **Google Gemini AI**. Write, publish, comment, like, and take private notes — all in one place.
 
 ---
 
