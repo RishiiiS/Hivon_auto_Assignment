@@ -1,10 +1,10 @@
-# 📚 The Archive
+#  The Archive
 
 > A premium editorial blogging platform built with **Next.js 16**, **Supabase**, **Cloudinary**, and **Google Gemini AI**. Write, publish, comment, like, and take private notes — all in one place.
 
 ---
 
-## ✨ Features
+##  Features
 
 - **Authentication** — Secure sign-up and login via Supabase Auth with cookie-based session management and automatic token refresh via middleware.
 - **Blog Posts** — Create, edit, and delete rich-text posts with a Tiptap editor. Posts include cover images, AI-generated summaries, and editorial category tags.
@@ -21,7 +21,13 @@
 
 ---
 
-## 🛠 Tech Stack
+## AI Summary Generation
+
+When a post is published, `services/ai.service.js` sends the post body to **Gemini 2.5 Flash** and returns a ~200-word editorial summary. If the `GEMINI_API_KEY` environment variable is missing or the API call fails, the service gracefully falls back to returning the first 500 characters of the post content.
+
+---
+
+##  Tech Stack
 
 | Layer        | Technology                                      |
 |--------------|-------------------------------------------------|
@@ -37,7 +43,7 @@
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 .
@@ -89,7 +95,7 @@
 
 ---
 
-## ⚙️ Environment Variables
+##  Environment Variables
 
 Copy `.env.example` to `.env.local` and fill in the values:
 
@@ -99,8 +105,8 @@ cp .env.example .env.local
 
 | Variable | Description | Required |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | ✅ |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon (public) key | ✅ |
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |  |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon (public) key |  |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (admin features only) | ⚠️ Admin only |
 | `GEMINI_API_KEY` | Google Gemini API key for AI summaries | Optional |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | Optional |
@@ -113,7 +119,7 @@ cp .env.example .env.local
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - Node.js **≥ 18.18**
@@ -144,7 +150,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🏗 Scripts
+##  Scripts
 
 | Command | Description |
 |---|---|
@@ -155,7 +161,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🌐 Deployment
+##  Deployment
 
 ### Vercel (Recommended)
 1. Push the repo to GitHub.
@@ -175,20 +181,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🔐 Authentication Flow
 
-1. User signs up / logs in via `/login` or `/signup`.
-2. Supabase Auth sets a secure, HTTP-only cookie.
-3. `middleware.js` runs on every request to refresh the access token if expired.
-4. Server components and API routes use `createSupabaseServerClient()` to read the user's session from cookies.
-5. Client components use the `useAuth()` hook to access the current user.
 
----
 
-## 🧠 AI Summary Generation
-
-When a post is published, `services/ai.service.js` sends the post body to **Gemini 2.5 Flash** and returns a ~200-word editorial summary. If the `GEMINI_API_KEY` environment variable is missing or the API call fails, the service gracefully falls back to returning the first 500 characters of the post content.
-
----
 
 
