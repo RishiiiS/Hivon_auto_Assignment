@@ -234,26 +234,7 @@ export default function CreatePostPage() {
            {/* Body Editor Section */}
            <div className="relative w-full">
              
-             {/* Floating Menu Toolbar (Left of body, visible on md+ screens exactly as screenshot 2) */}
-             <div className="absolute -left-16 top-0 hidden md:flex flex-col gap-3 group opacity-60 hover:opacity-100 transition-opacity">
-               <button className="w-10 h-10 border border-gray-200 rounded flex items-center justify-center bg-white text-gray-500 hover:text-gray-900 hover:shadow shadow-sm transition-all">
-                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="1.5" />
-                   <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
-                   <path strokeWidth="1.5" d="M21 15l-5-5L5 21"/>
-                 </svg>
-               </button>
-               <button className="w-10 h-10 border border-gray-200 rounded flex items-center justify-center bg-white text-gray-500 hover:text-gray-900 hover:shadow shadow-sm transition-all">
-                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-                 </svg>
-               </button>
-               <button className="w-10 h-10 border border-gray-200 rounded flex items-center justify-center bg-white text-gray-500 hover:text-gray-900 hover:shadow shadow-sm transition-all">
-                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 6h16M4 12h16M4 18h8"/>
-                 </svg>
-               </button>
-             </div>
+
              
              {/* Dynamic Textarea using TipTap */}
              <EditorContent editor={editor} />
