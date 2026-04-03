@@ -10,6 +10,7 @@ export default function Navbar() {
   const { user, loading, logout } = useAuth();
   
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [search, setSearch] = useState('');
   const dropdownRef = useRef(null);
 
@@ -32,13 +33,28 @@ export default function Navbar() {
   };
   
   return (
-    <nav id="global-navbar" className="fixed top-0 w-full h-16 bg-white border-b border-gray-100 z-50 flex items-center justify-between px-6 lg:px-10 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
-      <div className="flex items-center gap-3">
-        <svg className="w-5 h-5 text-[#0A4BB5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-        </svg>
-        <Link href="/" className="font-serif font-extrabold text-xl text-gray-900 tracking-tight transition-transform hover:scale-[1.01]">The Archive</Link>
-      </div>
+    <>
+      <nav id="global-navbar" className="fixed top-0 w-full h-16 bg-white border-b border-gray-100 z-[60] flex items-center justify-between px-4 lg:px-10 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+        <div className="flex items-center gap-3">
+          <button 
+            className="md:hidden p-1.5 -ml-1.5 text-gray-600 hover:text-[#0A4BB5] transition-colors rounded-md"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            ) : (
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+            )}
+          </button>
+          
+          <Link href="/" className="flex items-center gap-2 group" onClick={() => setMobileMenuOpen(false)}>
+            <svg className="w-5 h-5 text-[#0A4BB5] transition-transform group-hover:scale-105" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <span className="font-serif font-extrabold text-xl text-gray-900 tracking-tight transition-transform group-hover:scale-[1.01]">The Archive</span>
+          </Link>
+        </div>
       
       <div className="hidden md:flex flex-1 justify-center px-6">
         {pathname === '/about' && user ? (
@@ -75,12 +91,7 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-5">
-        <Link href="/search" className="md:hidden text-gray-500 hover:text-[#0A4BB5] transition-colors p-1">
-          <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1116.65 1.5a7.5 7.5 0 010 15.15z" />
-          </svg>
-        </Link>
-        
+
         {loading ? (
            <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse border border-gray-200"></div>
         ) : user ? (
@@ -145,5 +156,47 @@ export default function Navbar() {
         )}
       </div>
     </nav>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 top-16 z-50 bg-black/20 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}>
+          <div 
+            className="flex flex-col w-full bg-white border-b border-gray-200 shadow-xl overflow-y-auto transform origin-top transition-transform duration-200" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxHeight: 'calc(100vh - 4rem)' }}
+          >
+            <div className="p-4 border-b border-gray-100">
+              <form onSubmit={handleSearchSubmit} className="w-full relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1116.65 1.5a7.5 7.5 0 010 15.15z" /></svg>
+                </span>
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search..."
+                  className="w-full h-10 pl-10 pr-3 rounded-full border border-gray-200 bg-[#FCFBFA] text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#0A4BB5]"
+                />
+              </form>
+            </div>
+            <div className="p-4 flex flex-col gap-1">
+              <Link href="/" className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold" onClick={() => setMobileMenuOpen(false)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                Home
+              </Link>
+              <Link href="/about" className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold" onClick={() => setMobileMenuOpen(false)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                About
+              </Link>
+              {user && (
+                <Link href="/profile" className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold" onClick={() => setMobileMenuOpen(false)}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  Profile
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
