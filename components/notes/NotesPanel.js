@@ -146,11 +146,7 @@ export default function NotesPanel() {
             className="w-full h-32 p-3 font-medium text-sm border border-gray-200 rounded-lg resize-none bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0A4BB5]/20 focus:border-[#0A4BB5] shadow-sm transition-all"
           />
 
-          <div className="flex gap-2">
-            <button type="button" className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded hover:border-gray-300 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-colors">B</button>
-            <button type="button" className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded hover:border-gray-300 text-sm text-gray-700 font-serif italic bg-white hover:bg-gray-50 transition-colors">I</button>
-            <button type="button" className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded hover:border-gray-300 text-xl font-bold text-gray-700 bg-white hover:bg-gray-50 transition-colors leading-none pb-1">•</button>
-          </div>
+
 
           <button
             type="button"

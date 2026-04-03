@@ -270,7 +270,6 @@ export default function CreatePostPage() {
          </div>
          <div className="flex gap-6 text-xs font-semibold text-gray-500 mt-6 md:mt-0 tracking-wide">
             <a href="#" className="hover:text-gray-900 transition-colors">About</a>
-            <a href="#" className="hover:text-gray-900 transition-colors">Membership</a>
             <a href="#" className="hover:text-gray-900 transition-colors">Help</a>
          </div>
       </footer>

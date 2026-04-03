@@ -174,7 +174,6 @@ export default function SignupPage() {
          <div className="font-serif font-bold text-gray-900 text-sm mb-4 md:mb-0">The Archive</div>
          <div className="flex gap-4 md:gap-6 font-medium text-xs text-gray-700 mb-4 md:mb-0">
            <a href="#" className="hover:text-gray-900 transition-colors">About</a>
-           <a href="#" className="hover:text-gray-900 transition-colors">Membership</a>
            <a href="#" className="hover:text-gray-900 transition-colors">Write</a>
            <a href="#" className="hover:text-gray-900 transition-colors">Help</a>
          </div>

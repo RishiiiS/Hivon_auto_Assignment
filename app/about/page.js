@@ -14,10 +14,6 @@ export default function AboutPage() {
           </h1>
 
           <div className="lg:col-span-4 lg:pb-8">
-            <p className="text-[15px] md:text-base text-gray-700 leading-relaxed font-medium">
-              Established in 2024, we treat the digital landscape with the same reverence as a
-              high‑end physical monograph.
-            </p>
           </div>
         </div>
       </section>
@@ -27,9 +23,9 @@ export default function AboutPage() {
         <div className="rounded-[26px] overflow-hidden border border-[#EAEAEA] bg-white shadow-[0_10px_35px_rgb(0,0,0,0.05)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://images.unsplash.com/photo-1523413651479-597eb2da0ad6?auto=format&fit=crop&w=2400&q=70"
-            alt="Editorial interior"
-            className="w-full h-[360px] md:h-[520px] object-cover grayscale"
+            src="/about-hero.png"
+            alt="Open book in a library"
+            className="w-full h-[360px] md:h-[520px] object-cover"
           />
         </div>
       </section>
@@ -120,7 +116,7 @@ export default function AboutPage() {
               </p>
               <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-3">
                 <a
-                  href="mailto:hello@thearchive.example"
+                  href="mailto:rishi.seth@adypu.edu.in"
                   className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-gray-900 text-white text-[11px] font-bold tracking-widest uppercase hover:bg-black transition-colors"
                 >
                   Email Us

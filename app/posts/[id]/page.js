@@ -83,6 +83,8 @@ export default function PostDetailPage() {
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const [purifier, setPurifier] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [copyDone, setCopyDone] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -209,6 +211,18 @@ export default function PostDetailPage() {
     router.push('/');
   };
 
+  const postUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const encodedUrl = encodeURIComponent(postUrl);
+  const encodedTitle = encodeURIComponent(post?.title || 'Check this out');
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(postUrl);
+      setCopyDone(true);
+      setTimeout(() => setCopyDone(false), 2000);
+    } catch {}
+  };
+
   return (
     <div style={{ position:'fixed', inset:0, display:'flex', flexDirection:'column', background:BG, fontFamily:FONT_SANS, overflow:'hidden' }}>
 
@@ -242,22 +256,57 @@ export default function PostDetailPage() {
 
         {/* Desktop nav links — hidden ≤640px via inline media trick */}
         <nav className="archive-desktop-nav" style={{ display:'flex', alignItems:'center', gap:24 }}>
-          {['About','Membership','Write'].map(l => (
-            <a key={l} href="#" style={{ fontSize:'0.875rem', color:'#6b7280', textDecoration:'none', fontWeight:500 }}>{l}</a>
+          {[{label:'About', href:'/about'},{label:'Write', href:'/create-post'}].map(l => (
+            <a key={l.label} href={l.href} style={{ fontSize:'0.875rem', color:'#6b7280', textDecoration:'none', fontWeight:500 }}>{l.label}</a>
           ))}
         </nav>
 
-        {/* Share + avatar */}
-        <div style={{ display:'flex', alignItems:'center', gap:12, marginLeft:16 }}>
-          <button style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280', display:'flex' }}>
+        {/* Share */}
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginLeft:16, position:'relative' }}>
+          <button onClick={() => setShareOpen(v => !v)} style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280', display:'flex' }} aria-label="Share">
             <ShareIcon />
           </button>
-          <div style={{
-            width:34, height:34, borderRadius:'50%',
-            background:'linear-gradient(135deg,#4f46e5,#7c3aed)',
-            color:'#fff', fontWeight:700, fontSize:'0.85rem',
-            display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
-          }}>A</div>
+          {shareOpen && (
+            <div
+              style={{
+                position:'absolute', right:0, top:'calc(100% + 10px)',
+                background:'#fff', border:'1px solid #e5e7eb',
+                borderRadius:12, boxShadow:'0 12px 32px rgba(0,0,0,0.12)',
+                padding:'8px 0', minWidth:200, zIndex:100,
+              }}
+            >
+              <div style={{ padding:'8px 14px 6px', fontSize:'0.7rem', fontWeight:700, letterSpacing:'0.1em', color:'#9ca3af', textTransform:'uppercase' }}>Share via</div>
+              {[
+                { label:'Twitter / X',  href:`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`, color:'#000' },
+                { label:'LinkedIn',     href:`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`, color:'#0a66c2' },
+                { label:'Facebook',     href:`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, color:'#1877f2' },
+                { label:'WhatsApp',     href:`https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`, color:'#25d366' },
+              ].map(({ label, href, color }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setShareOpen(false)}
+                  style={{ display:'block', padding:'9px 14px', fontSize:'0.85rem', fontWeight:500, color:'#111', textDecoration:'none', transition:'background 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.background='#f9fafb'}
+                  onMouseLeave={e => e.currentTarget.style.background='transparent'}
+                >
+                  <span style={{ display:'inline-block', width:10, height:10, borderRadius:'50%', background:color, marginRight:8 }} />
+                  {label}
+                </a>
+              ))}
+              <div style={{ borderTop:'1px solid #f3f4f6', margin:'4px 0' }} />
+              <button
+                onClick={handleCopyLink}
+                style={{ display:'block', width:'100%', padding:'9px 14px', fontSize:'0.85rem', fontWeight:500, color: copyDone ? '#16a34a' : '#111', textAlign:'left', background:'none', border:'none', cursor:'pointer', transition:'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.background='#f9fafb'}
+                onMouseLeave={e => e.currentTarget.style.background='transparent'}
+              >
+                {copyDone ? '✓ Link copied!' : '🔗 Copy link'}
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -448,10 +497,57 @@ export default function PostDetailPage() {
                 <ChatIcon /><span>{comments.length}</span>
               </button>
             </div>
-            <div style={{ display:'flex', alignItems:'center', gap:16 }}>
-              {[<BookmarkIcon key="b"/>, <ShareIcon key="s"/>].map((icon, i) => (
-                <button key={i} style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280', display:'flex', padding:0 }}>{icon}</button>
-              ))}
+            <div style={{ display:'flex', alignItems:'center', gap:16, position:'relative' }}>
+              <div style={{ position:'relative' }}>
+                <button
+                  onClick={() => setShareOpen(v => !v)}
+                  style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280', display:'flex', padding:0 }}
+                  aria-label="Share"
+                >
+                  <ShareIcon />
+                </button>
+                {shareOpen && (
+                  <div
+                    style={{
+                      position:'absolute', right:0, bottom:'calc(100% + 10px)',
+                      background:'#fff', border:'1px solid #e5e7eb',
+                      borderRadius:12, boxShadow:'0 12px 32px rgba(0,0,0,0.12)',
+                      padding:'8px 0', minWidth:200, zIndex:100,
+                    }}
+                  >
+                    <div style={{ padding:'8px 14px 6px', fontSize:'0.7rem', fontWeight:700, letterSpacing:'0.1em', color:'#9ca3af', textTransform:'uppercase' }}>Share via</div>
+                    {[
+                      { label:'Twitter / X',  href:`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`, color:'#000' },
+                      { label:'LinkedIn',     href:`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`, color:'#0a66c2' },
+                      { label:'Facebook',     href:`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, color:'#1877f2' },
+                      { label:'WhatsApp',     href:`https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`, color:'#25d366' },
+                    ].map(({ label, href, color }) => (
+                      <a
+                        key={label}
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setShareOpen(false)}
+                        style={{ display:'block', padding:'9px 14px', fontSize:'0.85rem', fontWeight:500, color:'#111', textDecoration:'none', transition:'background 0.15s' }}
+                        onMouseEnter={e => e.currentTarget.style.background='#f9fafb'}
+                        onMouseLeave={e => e.currentTarget.style.background='transparent'}
+                      >
+                        <span style={{ display:'inline-block', width:10, height:10, borderRadius:'50%', background:color, marginRight:8 }} />
+                        {label}
+                      </a>
+                    ))}
+                    <div style={{ borderTop:'1px solid #f3f4f6', margin:'4px 0' }} />
+                    <button
+                      onClick={handleCopyLink}
+                      style={{ display:'block', width:'100%', padding:'9px 14px', fontSize:'0.85rem', fontWeight:500, color: copyDone ? '#16a34a' : '#111', textAlign:'left', background:'none', border:'none', cursor:'pointer', transition:'background 0.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.background='#f9fafb'}
+                      onMouseLeave={e => e.currentTarget.style.background='transparent'}
+                    >
+                      {copyDone ? '✓ Link copied!' : '🔗 Copy link'}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -469,7 +565,7 @@ export default function PostDetailPage() {
               The Editorial Archive
             </span>
             <nav style={{ display:'flex', alignItems:'center', gap:16 }}>
-              {['About','Membership','Write','Help'].map(l => (
+              {['About','Write'].map(l => (
                 <a key={l} href="#" style={{ fontSize:'0.8rem', color:'#6b7280', textDecoration:'none' }}>{l}</a>
               ))}
             </nav>
@@ -495,10 +591,9 @@ export default function PostDetailPage() {
           }
         `}</style>
         {[
-          { icon:<HomeIcon />, label:'HOME',      active:false, action:() => router.push('/') },
-          { icon:<SearchIcon2 />, label:'SEARCH',    active:false, action:()=>{} },
-          { icon:<BookmarkIcon />, label:'BOOKMARKS', active:false, action:()=>{} },
-          { icon:<UserIcon />, label:'PROFILE',   active:true,  action:()=>{} },
+          { icon:<HomeIcon />, label:'HOME',    active:false, action:() => router.push('/') },
+          { icon:<SearchIcon2 />, label:'SEARCH',  active:false, action:()=>{} },
+          { icon:<UserIcon />, label:'PROFILE', active:true,  action:()=>{} },
         ].map(({ icon, label, active, action }) => (
           <button
             key={label}
