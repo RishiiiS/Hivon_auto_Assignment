@@ -15,19 +15,21 @@ export async function GET(request) {
 
     const { data: dbUser, error: dbError } = await supabase
       .from('users')
-      .select('id, name, email, role, avatar_url')
+      .select('id, name, role')
       .eq('id', user.id)
       .maybeSingle();
 
-    if (dbError) throw new Error(dbError.message);
+    if (dbError) {
+      console.error("Auth me DB Error:", dbError);
+      throw new Error(dbError.message);
+    }
 
     return NextResponse.json({ 
       user: {
         id: user.id,
         role: dbUser?.role || 'user',
         name: dbUser?.name || null,
-        email: dbUser?.email || user.email || null,
-        avatar_url: dbUser?.avatar_url || null,
+        email: user.email || null,
       } 
     }, { status: 200 });
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { loginUser } from '@/services/auth.service';
+import { createSupabaseServerClient } from '@/lib/supabaseServer';
 
 export async function POST(request) {
   try {
@@ -10,7 +10,15 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    const { user, session } = await loginUser({ email, password });
+    const supabase = await createSupabaseServerClient();
+    const { data: { user, session }, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      return NextResponse.json({ error: error.message || 'Invalid login credentials' }, { status: 401 });
+    }
 
     return NextResponse.json({ 
       message: 'Login successful',

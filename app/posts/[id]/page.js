@@ -194,11 +194,9 @@ export default function PostDetailPage() {
   const authorName = relatedUser?.name || post.user_name || post.author_name || 'User';
   const mins     = readTime(post.body);
   const comments = commentsData?.comments || [];
-  const authorId = post.userId ?? post.author_id ?? post.user_id ?? post.users?.id;
-  const isAuthor =
-    authorId != null && currentUser?.id != null && String(authorId) === String(currentUser.id);
-  const isAdmin = currentUser?.role === 'admin';
-  const canModify = Boolean(currentUser && (isAuthor || isAdmin));
+  const authorId = post.user_id || post.author_id || post.userId || post.users?.id;
+  const isAdmin = currentUser?.role?.toLowerCase() === 'admin';
+  const canModify = Boolean(currentUser && (isAdmin || String(authorId) === String(currentUser.id)));
 
   const handleEdit = () => router.push(`/edit/${post.id}`);
   const handleDelete = async () => {

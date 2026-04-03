@@ -41,12 +41,9 @@ function Comment({ comment, depth = 0, currentUser, postAuthorId, onEdit, onDele
   const [editContent, setEditContent] = useState(comment.comment_text);
   const [menuOpen, setMenuOpen]     = useState(false);
 
-  const isCommentAuthor = currentUser?.id === comment.user_id;
-  const isPostAuthor = currentUser?.id === postAuthorId;
-  const isAdmin = currentUser?.role === 'admin';
-
-  const canEdit = isCommentAuthor || isAdmin;
-  const canDelete = isCommentAuthor || isPostAuthor || isAdmin;
+  const isAdmin = currentUser?.role?.toLowerCase() === 'admin';
+  const canEdit = isAdmin || comment.user_id === currentUser?.id;
+  const canDelete = isAdmin || comment.user_id === currentUser?.id || postAuthorId === currentUser?.id;
 
   const handleSaveEdit = async () => {
     if (!editContent.trim()) return;

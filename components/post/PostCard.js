@@ -38,11 +38,9 @@ export default function PostCard({ post, isFeatured, onDeleted, currentUser }) {
   const authorName = relatedUser?.name || post.user_name || post.author_name || 'User';
   const authorAvatarUrl = relatedUser?.avatar_url || post.author_avatar_url || null;
 
-  const authorId = post.userId ?? post.author_id ?? post.user_id ?? relatedUser?.id ?? post.users?.id;
-  const isAuthor =
-    authorId != null && currentUser?.id != null && String(authorId) === String(currentUser.id);
-  const isAdmin = currentUser?.role === 'admin';
-  const canModify = Boolean(currentUser && (isAuthor || isAdmin));
+  const authorId = post.user_id || post.author_id || post.userId || relatedUser?.id || post.users?.id;
+  const isAdmin = currentUser?.role?.toLowerCase() === 'admin';
+  const canModify = Boolean(currentUser && (isAdmin || String(authorId) === String(currentUser.id)));
   
   // Format dates statically for UI if missing
   const dateStr = post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Oct 24, 2024';

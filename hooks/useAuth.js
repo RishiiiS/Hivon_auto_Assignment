@@ -14,18 +14,21 @@ export function useAuth() {
         return;
       }
 
-      const { data: profile } = await supabase
+      const { data: profile, error: dbError } = await supabase
         .from('users')
-        .select('id, name, email, role, avatar_url')
+        .select('id, name, role')
         .eq('id', authUser.id)
         .maybeSingle();
+        
+      if (dbError) {
+        console.error("useAuth DB Error:", dbError);
+      }
 
       setUser({
         id: authUser.id,
         name: profile?.name || null,
-        email: profile?.email || authUser.email || null,
+        email: authUser.email || null,
         role: profile?.role || 'user',
-        avatar_url: profile?.avatar_url || null,
       });
     } catch (e) {
       setUser(null);
