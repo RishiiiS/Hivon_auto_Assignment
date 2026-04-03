@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '../../../../services/auth.service';
-import { getLikeSummaries } from '../../../../services/postLike.service';
+import { getCurrentUser } from '@/services/auth.service';
+import { getLikeSummaries } from '@/services/postLike.service';
 import { createSupabaseServerClient } from '@/lib/supabaseServer';
 
 export async function GET(request) {
@@ -37,7 +37,7 @@ export async function GET(request) {
       }
     } else {
       try {
-        const supabase = createSupabaseServerClient();
+        const supabase = await createSupabaseServerClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (user) userId = user.id;
       } catch (e) {

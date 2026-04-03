@@ -80,6 +80,7 @@ export default function EditPostPage() {
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       });
 
       const json = await res.json();

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { extname, join } from 'path';
 import { v2 as cloudinary } from 'cloudinary';
+import { createSupabaseServerClient } from '@/lib/supabaseServer';
 
 function hasCloudinaryConfig() {
   return Boolean(
@@ -48,6 +49,16 @@ async function uploadBufferToCloudinary(buffer, originalFilename) {
 
 export async function POST(request) {
   try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file');
 

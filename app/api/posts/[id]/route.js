@@ -1,26 +1,21 @@
 import { NextResponse } from 'next/server';
-import { getPostById, updatePost, deletePost } from '../../../../services/post.service';
-import { getRequestUser } from '../../../../services/requestUser.service';
+import { createSupabaseServerClient } from '@/lib/supabaseServer';
+import { getPostById } from '@/services/post.service';
 
 export async function GET(request, context) {
   try {
-    // Await params to support both Next.js 14 and 15 safely
     const { id } = await context.params;
+    if (!id) return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
 
-    if (!id) {
-       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
-    }
-
-    // 5. Return full post: title, body, image_url, summary, author_id
-    // 7. Do NOT call AI during fetch
+    // Using the service ensures we get the same hydration logic (author_name, etc.)
+    // and use the anon client which we know can read posts.
     const post = await getPostById(id);
-
     return NextResponse.json({ post }, { status: 200 });
 
   } catch (error) {
     console.error('Get post error:', error);
-    if (error.message.includes('not found') || error.message.includes('contains no rows')) {
-        return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    if (error.message.includes('not found')) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
     return NextResponse.json({ error: error.message || 'Failed to fetch post' }, { status: 500 });
   }
@@ -28,12 +23,14 @@ export async function GET(request, context) {
 
 export async function PUT(request, context) {
   try {
-    // 2. Extract user & Authenticate
-    let user;
-    try {
-      user = await getRequestUser(request);
-    } catch (err) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await context.params;
@@ -42,27 +39,30 @@ export async function PUT(request, context) {
     const body = await request.json();
     const { title, body: postBody, image_url } = body;
 
-    // 3. Fetch post by id
-    let post;
-    try {
-      post = await getPostById(id);
-    } catch (err) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    const { data: post, error: fetchError } = await supabase
+      .from('posts')
+      .select('author_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) {
+      if (fetchError.code === 'PGRST116') return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+      throw new Error(fetchError.message);
     }
 
-    // RBAC check
-    if (post.author_id !== user.id && user.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden: You do not have permission to edit this post' }, { status: 403 });
+    const { data: dbUser } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (post.author_id !== user.id && dbUser?.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Allow updating title, body, image_url
     const updateData = {};
     if (title !== undefined) updateData.title = title;
     if (postBody !== undefined) updateData.body = postBody;
     if (image_url !== undefined) updateData.image_url = image_url;
 
     if (Object.keys(updateData).length > 0) {
-      await updatePost(id, updateData);
+      const { error: updateError } = await supabase.from('posts').update(updateData).eq('id', id);
+      if (updateError) throw new Error(updateError.message);
     }
 
     return NextResponse.json({ message: 'Post updated successfully' }, { status: 200 });
@@ -75,31 +75,37 @@ export async function PUT(request, context) {
 
 export async function DELETE(request, context) {
   try {
-    // Authenticate
-    let user;
-    try {
-      user = await getRequestUser(request);
-    } catch (err) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await context.params;
     if (!id) return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
 
-    // Fetch post by id
-    let post;
-    try {
-      post = await getPostById(id);
-    } catch (err) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    const { data: post, error: fetchError } = await supabase
+      .from('posts')
+      .select('author_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) {
+      if (fetchError.code === 'PGRST116') return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+      throw new Error(fetchError.message);
     }
 
-    // RBAC check
-    if (post.author_id !== user.id && user.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden: You do not have permission to delete this post' }, { status: 403 });
+    const { data: dbUser } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (post.author_id !== user.id && dbUser?.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await deletePost(id);
+    const { error: deleteError } = await supabase.from('posts').delete().eq('id', id);
+    if (deleteError) throw new Error(deleteError.message);
 
     return NextResponse.json({ message: 'Post deleted successfully' }, { status: 200 });
 

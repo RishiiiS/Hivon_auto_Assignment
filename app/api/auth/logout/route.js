@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { logoutUser } from '../../../../services/auth.service';
+import { logoutUser } from '@/services/auth.service';
 import { createSupabaseServerClient } from '@/lib/supabaseServer';
 
 export async function POST(request) {
@@ -12,7 +12,7 @@ export async function POST(request) {
       await logoutUser(token);
     } else {
       // Preferred: cookie-based logout
-      const supabase = createSupabaseServerClient();
+      const supabase = await createSupabaseServerClient();
       await supabase.auth.signOut();
     }
 

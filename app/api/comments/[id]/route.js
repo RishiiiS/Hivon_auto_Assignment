@@ -1,37 +1,38 @@
 import { NextResponse } from 'next/server';
-import { getRequestUser } from '../../../../services/requestUser.service';
-import { getCommentById, deleteComment, updateComment } from '../../../../services/comment.service';
+import { createSupabaseServerClient } from '@/lib/supabaseServer';
 
 export async function DELETE(request, context) {
   try {
-    // Identify requesting user securely via JWT
-    let user;
-    try {
-      user = await getRequestUser(request);
-    } catch (err) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await context.params;
+    if (!id) return NextResponse.json({ error: 'Comment ID is required' }, { status: 400 });
 
-    if (!id) {
-       return NextResponse.json({ error: 'Comment ID is required' }, { status: 400 });
+    const { data: comment, error: fetchError } = await supabase
+      .from('comments')
+      .select('user_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) {
+      if (fetchError.code === 'PGRST116') return NextResponse.json({ error: 'Comment not found' }, { status: 404 });
+      throw new Error(fetchError.message);
     }
 
-    // Fetch comment by id
-    let comment;
-    try {
-      comment = await getCommentById(id);
-    } catch (err) {
-      return NextResponse.json({ error: 'Comment not found' }, { status: 404 });
-    }
-
-    // Rule: Allow delete only if comment.user_id === loggedInUser.id
     if (comment.user_id !== user.id) {
-      return NextResponse.json({ error: 'Forbidden: You can only delete your own comments' }, { status: 403 });
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await deleteComment(id);
+    const { error: deleteError } = await supabase.from('comments').delete().eq('id', id);
+    if (deleteError) throw new Error(deleteError.message);
 
     return NextResponse.json({ message: 'Comment deleted successfully' }, { status: 200 });
 
@@ -43,18 +44,18 @@ export async function DELETE(request, context) {
 
 export async function PUT(request, context) {
   try {
-    let user;
-    try {
-      user = await getRequestUser(request);
-    } catch (err) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await context.params;
-
-    if (!id) {
-       return NextResponse.json({ error: 'Comment ID is required' }, { status: 400 });
-    }
+    if (!id) return NextResponse.json({ error: 'Comment ID is required' }, { status: 400 });
 
     const body = await request.json();
     const { comment_text } = body;
@@ -63,23 +64,30 @@ export async function PUT(request, context) {
        return NextResponse.json({ error: 'Comment text is required' }, { status: 400 });
     }
 
-    let comment;
-    try {
-      comment = await getCommentById(id);
-    } catch (err) {
-      return NextResponse.json({ error: 'Comment not found' }, { status: 404 });
+    const { data: comment, error: fetchError } = await supabase
+      .from('comments')
+      .select('user_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) {
+      if (fetchError.code === 'PGRST116') return NextResponse.json({ error: 'Comment not found' }, { status: 404 });
+      throw new Error(fetchError.message);
     }
 
-    // Role Matrix Validation
-    // Users can only edit if they are the original author or an admin
-    const isAuthor = comment.user_id === user.id;
-    const isAdmin = user.role === 'admin';
-
-    if (!isAuthor && !isAdmin) {
-      return NextResponse.json({ error: 'Forbidden: You do not have permission to edit this comment' }, { status: 403 });
+    const { data: dbUser } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (comment.user_id !== user.id && dbUser?.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const updated = await updateComment(id, comment_text.trim());
+    const { data: updated, error: updateError } = await supabase
+      .from('comments')
+      .update({ comment_text: comment_text.trim() })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) throw new Error(updateError.message);
 
     return NextResponse.json({ message: 'Comment updated successfully', comment: updated }, { status: 200 });
 

@@ -1,40 +1,44 @@
 import { NextResponse } from 'next/server';
-import { getRequestUser } from '../../../../services/requestUser.service';
-import { generateSummary } from '../../../../services/ai.service';
-import { createPost } from '../../../../services/post.service';
+import { createSupabaseServerClient } from '@/lib/supabaseServer';
+import { generateSummary } from '@/services/ai.service';
 
 export async function POST(request) {
   try {
-    // 1. Authenticate user and get user.id (Security: Always extract user from token)
-    let user;
-    try {
-      user = await getRequestUser(request);
-    } catch (err) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid or expired token' }, { status: 401 });
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
     const { title, body: postBody, image_url } = body;
 
-    // 8. Handle missing fields
     if (!title || !postBody) {
       return NextResponse.json({ error: 'Title and body are required' }, { status: 400 });
     }
 
-    // 2 & 5. Call AI service to generate a ~200 word summary from body using Gemini API
-    // 7. Generate summary ONLY during creation
     const summary = await generateSummary(postBody);
 
-    // 3. Insert into "posts" table (Summary stored in DB)
-    const newPost = await createPost({
-      title,
-      body: postBody,
-      image_url: image_url || null,
-      author_id: user.id, // 6. Do NOT trust frontend for author_id
-      summary,
-    });
+    const { data: newPost, error: dbError } = await supabase
+      .from('posts')
+      .insert([
+        {
+          title,
+          body: postBody,
+          image_url: image_url || null,
+          author_id: user.id,
+          summary,
+        }
+      ])
+      .select()
+      .single();
 
-    // 4. Return created post
+    if (dbError) throw new Error(dbError.message);
+
     return NextResponse.json({ 
       message: 'Post created successfully',
       post: newPost 

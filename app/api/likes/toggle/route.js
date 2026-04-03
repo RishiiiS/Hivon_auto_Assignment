@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
-import { getRequestUser } from '../../../../services/requestUser.service';
-import { getPostById } from '../../../../services/post.service';
-import { createLike, deleteLike, findExistingLike } from '../../../../services/postLike.service';
+import { createSupabaseServerClient } from '@/lib/supabaseServer';
 
 export async function POST(request) {
   try {
-    let user;
-    try {
-      user = await getRequestUser(request);
-    } catch (err) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -19,21 +20,33 @@ export async function POST(request) {
       return NextResponse.json({ error: 'postId is required' }, { status: 400 });
     }
 
-    // Validate post exists
-    try {
-      await getPostById(postId);
-    } catch (err) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
-    }
-
     // Toggle logic: If like exists -> delete, Else -> insert
-    const existing = await findExistingLike(user.id, postId);
+    const { data: existing, error: findError } = await supabase
+      .from('post_likes')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('post_id', postId)
+      .maybeSingle();
+
+    if (findError) throw new Error(findError.message);
 
     if (existing) {
-      await deleteLike(user.id, postId);
+      const { error: deleteError } = await supabase
+        .from('post_likes')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('post_id', postId);
+        
+      if (deleteError) throw new Error(deleteError.message);
+      
       return NextResponse.json({ message: 'Post unliked successfully', liked: false }, { status: 200 });
     } else {
-      await createLike(user.id, postId);
+      const { error: insertError } = await supabase
+        .from('post_likes')
+        .insert([{ user_id: user.id, post_id: postId }]);
+        
+      if (insertError) throw new Error(insertError.message);
+      
       return NextResponse.json({ message: 'Post liked successfully', liked: true }, { status: 201 });
     }
 

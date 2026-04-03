@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getRequestUser } from '../../../../services/requestUser.service';
-import { getPostById } from '../../../../services/post.service';
-import { findExistingLike, createLike, deleteLike } from '../../../../services/postLike.service';
+import { getRequestUser } from '@/services/requestUser.service';
+import { getPostById } from '@/services/post.service';
+import { findExistingLike, createLike, deleteLike } from '@/services/postLike.service';
 
 export async function POST(request) {
   try {

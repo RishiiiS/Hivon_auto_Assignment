@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
-import { getRequestUser } from '../../../../services/requestUser.service';
-import { getPostById } from '../../../../services/post.service';
-import { createComment } from '../../../../services/comment.service';
+import { createSupabaseServerClient } from '@/lib/supabaseServer';
 
 export async function POST(request) {
   try {
-    // 5. Always extract from token
-    let user;
-    try {
-      user = await getRequestUser(request);
-    } catch (err) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -23,19 +23,22 @@ export async function POST(request) {
       return NextResponse.json({ error: 'comment_text cannot be empty' }, { status: 400 });
     }
 
-    // Validate post exists
-    try {
-      await getPostById(post_id);
-    } catch (err) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
-    }
+    const { data: newComment, error: insertError } = await supabase
+      .from('comments')
+      .insert([
+        {
+          post_id,
+          user_id: user.id,
+          comment_text,
+          parent_comment_id: parent_comment_id || null,
+        }
+      ])
+      .select()
+      .single();
 
-    const newComment = await createComment({
-      post_id,
-      user_id: user.id, // Never trust user_id from frontend
-      comment_text,
-      parent_comment_id: parent_comment_id || null,
-    });
+    if (insertError) {
+      throw new Error(insertError.message);
+    }
 
     return NextResponse.json({ 
       message: 'Comment created successfully',

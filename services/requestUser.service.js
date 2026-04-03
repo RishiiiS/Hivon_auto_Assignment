@@ -12,7 +12,7 @@ export async function getRequestUser(request) {
   }
 
   // Preferred: cookie-based auth (Supabase SSR)
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
     error: authError,
